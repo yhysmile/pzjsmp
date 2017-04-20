@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<configuration debug="false" scan="true">
+	<property name="log.path" value="../logs" />
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{HH:mm:ss} [%5p] %C{0}.%M - %m%n</pattern>
+		</encoder>
+	</appender>
+	<appender name="smp-data" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="com.pzj.framework.logger.filter.ThresholdFilter">
+			<level>warn</level>
+			<rebel>true</rebel>
+		</filter>
+		<file>${log.path}/smp-data.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.path}/smp-data-%d{yyyyMMdd}.log</fileNamePattern>
+			<maxHistory>7</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%d{HH:mm:ss} [%-5p] [%t] %C{0}.%M - %m%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="smp-error" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="com.pzj.framework.logger.filter.ThresholdFilter" />
+		<file>${log.path}/smp-error.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.path}/smp-error-%d{yyyyMMdd}.log</fileNamePattern>
+			<maxHistory>7</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%d{HH:mm:ss} [%-5p] [%t] %C{0}.%M - %m%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="com.pzj.core" level="debug" additivity="false">
+		<appender-ref ref="smp-data" />
+		<appender-ref ref="smp-error" />
+		<appender-ref ref="stdout" />
+	</logger>
+
+	<logger name="org.springframework" level="info" />
+	<logger name="com.alibaba" level="info" />
+	<logger name="org.apache" level="info" />
+	<logger name="org.I0Itec.zkclient" level="warn" />
+
+	<root level="debug">
+		<appender-ref ref="stdout" />
+	</root>
+</configuration>

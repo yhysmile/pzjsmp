@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<configuration debug="false" scan="true">
+	<property name="log.path" value="../logs" />
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{HH:mm:ss} [%5p] %C{0}.%M - %m%n</pattern>
+		</encoder>
+	</appender>
+	<logger name="com.pzj.core" level="debug" additivity="true" />
+
+	<logger name="org.springframework" level="warn" />
+	<logger name="com.alibaba.dubbo" level="warn" />
+	<logger name="org.apache" level="info" />
+
+	<root level="debug">
+		<appender-ref ref="stdout" />
+	</root>
+	
+</configuration>

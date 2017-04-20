@@ -1,0 +1,9 @@
+com.pzj.core.smp.channel.business
+com.pzj.core.smp.channel.common
+com.pzj.core.smp.channel.enums
+com.pzj.core.smp.channel.model
+com.pzj.core.smp.channel.service
+com.pzj.core.smp.delivery
+com.pzj.core.smp.message
+com.pzj.core.smp.scheduling
+com.pzj.core.smp.util

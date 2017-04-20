@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.pzj.core.smp.write.RecordWriteMapper" >
+  <resultMap id="BaseResultMap" type="com.pzj.core.smp.record.RecordEntity" >
+    <id column="record_id" property="recordId" jdbcType="BIGINT" />
+    <result column="phone_number" property="phoneNumber" jdbcType="CHAR" />
+    <result column="state" property="state" jdbcType="BIT" />
+    <result column="channel_id" property="channelId" jdbcType="BIGINT" />
+    <result column="channel_name" property="channelName" jdbcType="VARCHAR" />
+    <result column="content" property="content" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="send_num" property="sendNum" jdbcType="INTEGER" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="link_id" property="linkId" jdbcType="VARCHAR" />
+  </resultMap>
+
+  <!-- 所有字段 -->
+  <sql id="base_columns">
+    record_id,
+    phone_number,
+    state,
+    channel_id,
+    channel_name,
+    content,
+    create_time,
+    send_num,
+    update_time,
+    link_id
+  </sql>
+
+  <!-- 插入单条短信记录-->
+  <insert id="insert">
+    insert into record
+    (
+    record_id,phone_number,state,
+    <if test="record.channelId != null" >
+    channel_id,
+    </if>
+    <if test="record.channelName != null" >
+    channel_name,
+    </if>
+	<if test="record.linkId != null" >
+    link_id,
+    </if>
+    content,send_num,update_time,create_time
+    )
+    values(
+    #{record.recordId,jdbcType=BIGINT},
+    #{record.phoneNumber,jdbcType=CHAR},
+    #{record.state,jdbcType=INTEGER},
+    <if test="record.channelId != null" >
+    #{record.channelId,jdbcType=BIGINT},
+    </if>
+    <if test="record.channelName != null" >
+    #{record.channelName,jdbcType=VARCHAR},
+    </if>
+    <if test="record.linkId != null" >
+    #{record.linkId,jdbcType=VARCHAR},
+    </if>
+    #{record.content,jdbcType=VARCHAR},
+    #{record.sendNum,jdbcType=INTEGER},
+    #{record.updateTime,jdbcType=TIMESTAMP},
+    #{record.createTime,jdbcType=TIMESTAMP}
+    )
+  </insert>
+
+  <!-- 根据主键id和状态值修改某一条发送记录的发送状态-->
+  <update id="updateRecordState">
+    update record
+    SET
+    state = #{recordState,jdbcType=INTEGER},
+    update_time = NOW()
+    where record_id = #{recordId,jdbcType=BIGINT}
+  </update>
+
+ 	<!-- 批量新短信记录 -->
+ 	<insert id="insertBatch" parameterType="java.util.List">
+ 		insert into record (
+ 			record_id,phone_number,state,
+		    channel_id,
+		    channel_name,
+		    link_id,
+    		content,send_num,update_time,create_time
+ 		) values
+ 		<foreach collection="records" item="record" separator=",">
+ 		(
+ 			#{record.recordId,jdbcType=BIGINT},
+		    #{record.phoneNumber,jdbcType=CHAR},
+		    #{record.state,jdbcType=INTEGER},
+		    <if test="record.channelId != null" >
+		    #{record.channelId,jdbcType=BIGINT},
+		    </if>
+		    <if test="record.channelName != null" >
+		    #{record.channelName,jdbcType=VARCHAR},
+		    </if>
+		    <if test="record.linkId != null" >
+		    #{record.linkId,jdbcType=VARCHAR},
+		    </if>
+		    #{record.content,jdbcType=VARCHAR},
+		    #{record.sendNum,jdbcType=INTEGER},
+		    #{record.updateTime,jdbcType=TIMESTAMP},
+		    #{record.createTime,jdbcType=TIMESTAMP}
+ 		)
+ 		</foreach>
+ 	</insert>
+</mapper>

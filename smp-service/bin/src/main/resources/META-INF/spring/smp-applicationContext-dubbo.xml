@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://code.alibabatech.com/schema/dubbo
+    http://code.alibabatech.com/schema/dubbo/dubbo.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- 访问日志 -->
+	<dubbo:protocol accesslog="false" />
+	<dubbo:application name="smp-root" />
+	<context:property-placeholder location="classpath*:dubbo.properties"
+		ignore-unresolvable="true" />
+
+
+	<dubbo:registry id="smp_provider" address="zookeeper://10.0.6.27:2181"
+		check="false" />
+	<dubbo:registry id="smp_consumer" address="zookeeper://10.0.6.27:2181"
+		check="false" />
+
+	<dubbo:service ref="channelRemoteService" interface="com.pzj.core.smp.channel.service.ChannelRemoteService"/>
+	
+	<dubbo:service ref="filterChannelService" interface="com.pzj.core.smp.channel.service.FilterChannelService"/>
+	<dubbo:service ref="recordManageService" interface="com.pzj.core.smp.record.IRecordManageService" version="1.0"/>
+</beans>

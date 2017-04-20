@@ -1,0 +1,24 @@
+-classpath
+'E:/gitprojects/smpgit/smp-dao/target/classes;D:/programFiles/work/maven/repository/org/slf4j/log4j-over-slf4j/1.7.5/log4j-over-slf4j-1.7.5.jar;D:/programFiles/work/maven/repository/com/google/code/gson/gson/2.2.4/gson-2.2.4.jar;D:/programFiles/work/maven/repository/org/mybatis/mybatis-spring/1.2.2/mybatis-spring-1.2.2.jar;D:/programFiles/work/maven/repository/org/springframework/spring-beans/4.3.0.RELEASE/spring-beans-4.3.0.RELEASE.jar;E:/gitprojects/smpgit/smp-facade/target/smp-facade.jar;D:/programFiles/work/maven/repository/org/springframework/spring-core/4.3.0.RELEASE/spring-core-4.3.0.RELEASE.jar;D:/programFiles/work/maven/repository/commons-beanutils/commons-beanutils/1.8.3/commons-beanutils-1.8.3.jar;D:/programFiles/work/jdk/jdk7/jre/../lib/tools.jar;D:/programFiles/work/maven/repository/com/alibaba/druid/1.0.9/druid-1.0.9.jar;D:/programFiles/work/maven/repository/org/springframework/spring-aop/4.3.0.RELEASE/spring-aop-4.3.0.RELEASE.jar;D:/programFiles/work/maven/repository/mysql/mysql-connector-java/5.1.33/mysql-connector-java-5.1.33.jar;D:/programFiles/work/maven/repository/ch/qos/logback/logback-classic/1.1.7/logback-classic-1.1.7.jar;D:/programFiles/work/maven/repository/org/springframework/spring-jdbc/4.3.0.RELEASE/spring-jdbc-4.3.0.RELEASE.jar;D:/programFiles/work/maven/repository/org/springframework/spring-expression/4.3.0.RELEASE/spring-expression-4.3.0.RELEASE.jar;D:/programFiles/work/maven/repository/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar;D:/programFiles/work/maven/repository/org/springframework/spring-context/4.3.0.RELEASE/spring-context-4.3.0.RELEASE.jar;D:/programFiles/work/maven/repository/org/slf4j/jcl-over-slf4j/1.7.5/jcl-over-slf4j-1.7.5.jar;D:/programFiles/work/maven/repository/ch/qos/logback/logback-core/1.1.7/logback-core-1.1.7.jar;D:/programFiles/work/maven/repository/org/mybatis/mybatis/3.2.7/mybatis-3.2.7.jar;D:/programFiles/work/maven/repository/cglib/cglib/2.2.2/cglib-2.2.2.jar;D:/programFiles/work/maven/repository/com/pzj/framework/pzj-toolkit/1.3.2/pzj-toolkit-1.3.2.jar;D:/programFiles/work/maven/repository/org/slf4j/slf4j-api/1.7.5/slf4j-api-1.7.5.jar;D:/programFiles/work/jdk/jdk7/jre/../lib/jconsole.jar;D:/programFiles/work/maven/repository/org/springframework/spring-orm/4.3.0.RELEASE/spring-orm-4.3.0.RELEASE.jar;D:/programFiles/work/maven/repository/asm/asm/3.3.1/asm-3.3.1.jar;E:/gitprojects/smpgit/smp-engine/target/smp-engine.jar;D:/programFiles/work/maven/repository/org/springframework/spring-tx/4.3.0.RELEASE/spring-tx-4.3.0.RELEASE.jar'
+-encoding
+'UTF-8'
+-public
+-sourcepath
+'E:/gitprojects/smpgit/smp-dao/src/main/java'
+-author
+-bottom
+'Copyright &#169; 2016. All Rights Reserved.'
+-charset
+'UTF-8'
+-d
+'E:/gitprojects/smpgit/smp-dao/target/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'短信平台数据库交互层'
+-link
+'http://java.sun.com/javase/6/docs/api'
+-use
+-version
+-windowtitle
+'短信平台数据库交互层 1.0.0-SNAPSHOT API'

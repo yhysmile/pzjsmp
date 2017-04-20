@@ -1,0 +1,37 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.pzj.core.smp.write.BusinWriteMapper" >
+    <resultMap id="BaseResultMap" type="com.pzj.core.smp.business.BusinEntity" >
+        <id column="busin_id" property="businId" jdbcType="BIGINT" />
+        <result column="busin_name" property="businName" jdbcType="VARCHAR" />
+        <result column="busin_describe" property="businDescribe" jdbcType="VARCHAR" />
+        <result column="state" property="state" jdbcType="INTEGER" />
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    </resultMap>
+
+    <!-- 新增 -->
+    <insert id="insert" parameterType="com.pzj.core.smp.business.BusinEntity">
+        insert into business (
+        busin_id,
+        busin_name,
+        busin_describe,
+        state,
+        create_time,
+        update_time
+        ) values (
+        #{busin.businId,jdbcType=BIGINT},
+        #{busin.businName,jdbcType=VARCHAR},
+        #{busin.businDescribe,jdbcType=VARCHAR},
+        #{busin.state,jdbcType=INTEGER},
+        #{busin.createTime,jdbcType=TIMESTAMP},
+        #{busin.updateTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    <!--根据主键id修改业务线状态 -->
+    <update id="updateState" >
+        update business  set state = #{state,jdbcType=INTEGER},
+        update_time = NOW()
+        where busin_id = #{businId,jdbcType=BIGINT}
+
+    </update>
+</mapper>

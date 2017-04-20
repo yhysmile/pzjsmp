@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://code.alibabatech.com/schema/dubbo
+    http://code.alibabatech.com/schema/dubbo/dubbo.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- 访问日志 -->
+	<dubbo:protocol accesslog="false" />
+	<context:property-placeholder location="classpath*:dubbo.properties"
+		ignore-unresolvable="true" />
+
+
+	<dubbo:registry id="smp_provider" address="${dubbo.registry.address}"
+		check="false" />
+	<dubbo:registry id="smp_consumer" address="${zookeeper.address.dev}"
+		check="false" />
+
+</beans>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.pzj.core.smp.write.BlackListWriteMapper" >
+  <resultMap id="BaseResultMap" type="com.pzj.core.smp.entity.BlackList" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="phone_number" property="phoneNumber" jdbcType="CHAR" />
+    <result column="state" property="state" jdbcType="BIT" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+
+  
+</mapper>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+
+
+		http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop-4.2.xsd">
+
+	<import
+		resource="classpath:META-INF/spring/smp-web-applicationContext-dubbo.xml" />
+	<aop:config proxy-target-class="true" />
+
+	<!-- disconf -->
+	<bean id="disconfMgrBean" class="com.baidu.disconf.client.DisconfMgrBean"
+		  destroy-method="destroy" lazy-init="false">
+		<property name="scanPackage" value="com.pzj"/>
+	</bean>
+	<bean id="disconfMgrBean2" class="com.baidu.disconf.client.DisconfMgrBeanSecond"
+		  init-method="init" destroy-method="destroy" lazy-init="false">
+	</bean>
+	<!-- 修改不自动重新加载的配置 -->
+	<bean id="configproperties_no_reloadable_disconf"
+		  class="com.baidu.disconf.client.addons.properties.ReloadablePropertiesFactoryBean" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value type="java.lang.String">classpath*:dubbo.properties</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="propertyConfigurerForProject1"
+		  class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="ignoreResourceNotFound" value="true"/>
+		<property name="ignoreUnresolvablePlaceholders" value="true"/>
+		<property name="propertiesArray">
+			<list>
+				<ref bean="configproperties_no_reloadable_disconf"/>
+			</list>
+		</property>
+	</bean>
+
+</beans>

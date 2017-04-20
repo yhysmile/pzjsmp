@@ -1,0 +1,27 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.pzj.core.smp.read.ErrorRecordReadMapper" >
+    <resultMap id="BaseResultMap" type="com.pzj.core.smp.errorRecord.ErrorRecordEntity" >
+        <id column="error_id" property="errorId" jdbcType="BIGINT" />
+        <result column="record_num" property="recordNum" jdbcType="INTEGER" />
+        <result column="record_id" property="recordId" jdbcType="BIGINT" />
+        <result column="err_detail" property="errDetail" jdbcType="VARCHAR" />
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    </resultMap>
+
+    <!-- 所有字段 -->
+    <sql id="base_columns">
+        error_id,
+        record_num,
+        record_id,
+        err_detail,
+        create_time
+    </sql>
+    <!-- 根据短信记录id查询短信发送记录-->
+    <select id="selectByRecordId" resultMap="BaseResultMap">
+        select <include refid="base_columns" />
+        from error_record
+        where record_id = #{recordId,jdbcType=BIGINT}
+
+    </select>
+
+</mapper>
