@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.pzj.core</groupId>
+    <artifactId>smp</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>smp-dao</artifactId>
+  <name>短信平台数据库交互层</name>
+  
+  <properties>
+  	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	<project.jdk.version>1.7</project.jdk.version>
+  	<mysql.connector.java.version>5.1.33</mysql.connector.java.version>
+	<mybatis.version>3.1.1</mybatis.version>
+	<mybatis.spring.version>1.2.2</mybatis.spring.version>
+	<druid.version>1.0.9</druid.version>
+  </properties>
+  
+  <dependencies>
+	  <dependency>
+	  <groupId>com.pzj.framework</groupId>
+	  <artifactId>pzj-sharding</artifactId>
+	  </dependency>
+    <dependency>
+		<groupId>mysql</groupId>
+		<artifactId>mysql-connector-java</artifactId>
+		<version>${mysql.connector.java.version}</version>
+	</dependency>
+	  <dependency>
+		  <groupId>com.pzj.framework</groupId>
+		  <artifactId>pzj-toolkit</artifactId>
+	  </dependency>
+	<dependency>
+		<groupId>org.mybatis</groupId>
+		<artifactId>mybatis</artifactId>
+		<version>${mybatis.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>org.mybatis</groupId>
+		<artifactId>mybatis-spring</artifactId>
+		<version>${mybatis.spring.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>com.alibaba</groupId>
+		<artifactId>druid</artifactId>
+		<version>${druid.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>org.springframework</groupId>
+		<artifactId>spring-orm</artifactId>
+	</dependency>
+  </dependencies>
+</project>

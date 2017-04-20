@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<configuration debug="false" scan="true">
+	<property name="log.path" value="../logs" />
+	<property name="enginee" value="短信管理平台"/>
+
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+			<layout class="com.pzj.framework.logger.layout.LoggerPatternLayout">
+				<pattern>%d{HH:mm:ss.SSS} [${enginee}] %inet [%5p] [%C{0}.%M] -> %m%n</pattern>
+			</layout>
+		</encoder>
+	</appender>
+	<appender name="smp-web-data" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="com.pzj.framework.logger.filter.ThresholdFilter">
+			<level>warn</level>
+			<rebel>true</rebel>
+		</filter>
+		<file>${log.path}/smp-web-data.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.path}/smp-web-data-%d{yyyyMMdd}.log</fileNamePattern>
+			<maxHistory>7</maxHistory>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+			<layout class="com.pzj.framework.logger.layout.LoggerPatternLayout">
+				<pattern>%d{HH:mm:ss.SSS} [${enginee}] %inet [%5p] [%C{0}.%M] -> %m%n</pattern>
+			</layout>
+		</encoder>
+	</appender>
+	<appender name="smp-web-error" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="com.pzj.framework.logger.filter.ThresholdFilter" />
+		<file>${log.path}/smp-web-error.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.path}/smp-web-error-%d{yyyyMMdd}.log</fileNamePattern>
+			<maxHistory>7</maxHistory>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+			<layout class="com.pzj.framework.logger.layout.LoggerPatternLayout">
+				<pattern>%d{HH:mm:ss.SSS} [${enginee}] %inet [%5p] [%C{0}.%M] -> %m%n</pattern>
+			</layout>
+		</encoder>
+	</appender>
+
+	<logger name="com.pzj" level="info" additivity="false">
+		<appender-ref ref="smp-web-data" />
+		<appender-ref ref="smp-web-error" />
+		<appender-ref ref="stdout" />
+	</logger>
+
+	<logger name="org.springframework" level="warn" />
+	<logger name="com.alibaba" level="warn" />
+	<logger name="org.apache" level="warn" />
+	<logger name="org.I0Itec.zkclient" level="warn" />
+
+	<root level="info">
+		<appender-ref ref="stdout" />
+	</root>
+</configuration>

@@ -1,0 +1,81 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.pzj.core.smp.read.BusinReadMapper" >
+    <resultMap id="BaseResultMap" type="com.pzj.core.smp.business.BusinEntity" >
+        <id column="busin_id" property="businId" jdbcType="BIGINT" />
+        <result column="busin_name" property="businName" jdbcType="VARCHAR" />
+        <result column="busin_describe" property="businDescribe" jdbcType="VARCHAR" />
+        <result column="state" property="state" jdbcType="INTEGER" />
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    </resultMap>
+
+    <!-- 所有字段 -->
+    <sql id="base_columns">
+        busin_id,
+        busin_name,
+        busin_describe,
+        state,
+        create_time,
+        update_time
+    </sql>
+
+    <!-- 筛选条件 -->
+    <sql id="base_page_sql">
+        <if test=" busin != null ">
+            <trim prefixOverrides="and">
+                <where>
+                    <if test=" busin.businName != null ">
+                        busin_name = #{ busin.businName,jdbcType=VARCHAR }
+                    </if>
+                    <if test=" busin.state != null ">
+                        and state = #{ busin.state,jdbcType=INTEGER }
+                    </if>
+                </where>
+            </trim>
+        </if>
+    </sql>
+
+    <!-- 根据名称和状态查询业务线,只查询id，用来验证业务线是否存在-->
+    <select id="selectByName" resultType="java.lang.Long">
+        select busin_id
+        from business
+        where busin_name = #{name,jdbcType=VARCHAR}
+        <if test="state != null">
+            and state = #{state,jdbcType=INTEGER}
+        </if>
+    </select>
+
+ <!--  根据状态查询所有业务线信息，不分页，state 0 禁用， 1 启用-->
+    <select id="selectValidBusin" resultMap="BaseResultMap">
+        select <include refid="base_columns"/>
+        from business
+        where  1 = 1
+        <if test="state != null">
+            and state = #{state,jdbcType=INTEGER}
+        </if>
+
+    </select>
+
+    <!-- 统计查询-->
+    <select id="countByParam" resultType="int">
+        select count(busin_id)
+        from business
+        <include refid="base_page_sql" />
+    </select>
+
+    <!--分页查询 -->
+    <select id="selectByParam" resultMap="BaseResultMap">
+    select <include refid="base_columns" />
+    from business
+    <include refid="base_page_sql" />
+    limit #{pageBean.pageIndex} ,#{pageBean.pageSize}
+    </select>
+
+    <!-- 根据主键id查询业务线-->
+    <select id="selectById" resultMap="BaseResultMap">
+        select <include refid="base_columns" />
+        from business
+        where busin_id = #{businId,jdbcType=BIGINT}
+
+    </select>
+</mapper>

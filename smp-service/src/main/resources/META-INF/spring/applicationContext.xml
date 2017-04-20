@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+	
+	<context:component-scan base-package="com.pzj.core.smp,com.pzj.message" />
+
+	<!-- enable autowire -->
+	<context:annotation-config />
+
+	<!-- 导入配置 -->
+	<import resource="classpath*:META-INF/spring/smp*.xml"/>
+
+	<!-- enable transaction demarcation with annotations -->
+	<tx:annotation-driven transaction-manager="smp.transactionManager" />
+	
+	<bean id="smp.transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="smp.write" />
+	</bean>
+	
+	<!-- 引用id生成器 -->
+	<bean class="com.pzj.framework.idgen.IDGenerater" scope="prototype" id="idGenerater"/>
+
+
+	<!-- disconf -->
+	<bean id="disconfMgrBean" class="com.baidu.disconf.client.DisconfMgrBean"
+		  destroy-method="destroy" lazy-init="false">
+		<property name="scanPackage" value="com.pzj"/>
+	</bean>
+	<bean id="disconfMgrBean2" class="com.baidu.disconf.client.DisconfMgrBeanSecond"
+		  init-method="init" destroy-method="destroy" lazy-init="false">
+	</bean>
+	<!-- 修改不自动重新加载的配置 -->
+	<bean id="configproperties_no_reloadable_disconf"
+		  class="com.baidu.disconf.client.addons.properties.ReloadablePropertiesFactoryBean" lazy-init="false">
+		<property name="locations">
+			<list>
+				<value type="java.lang.String">classpath*:cache.properties</value>
+				<value type="java.lang.String">classpath*:jdbc.properties</value>
+				<value type="java.lang.String">classpath*:logback.xml</value>
+				<value type="java.lang.String">classpath*:mail.properties</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="propertyConfigurerForProject1"
+		  class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" lazy-init="false">
+		<property name="ignoreResourceNotFound" value="true"/>
+		<property name="ignoreUnresolvablePlaceholders" value="true"/>
+		<property name="propertiesArray">
+			<list>
+				<ref bean="configproperties_no_reloadable_disconf"/>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- 邮箱配置 -->
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="${mail.host}" />
+		<property name="port" value="${mail.port}" />
+		<property name="username" value="${mail.username}" />
+		<property name="password" value="${mail.password}" />
+		<property name="defaultEncoding" value="${mail.encoding}" />
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.debug">true</prop>
+				<prop key="mail.smtp.timeout">${mail.smtp.timeout}</prop>
+				<prop key="mail.smtp.auth">true</prop>
+				<prop key="mail.smtp.starttls.enable">true</prop>
+				<prop key="mail.smtp.socketFactory.port">${mail.port}</prop>
+				<prop key="mail.smtp.socketFactory.class">javax.net.ssl.SSLSocketFactory</prop>  
+                <prop key="mail.smtp.socketFactory.fallback">false</prop>
+			</props>
+		</property>
+	</bean>
+</beans>

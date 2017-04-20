@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+    http://code.alibabatech.com/schema/dubbo
+    http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+	<dubbo:application name="${dubbo.application.name}" />
+	<dubbo:registry address="${dubbo.registry.address}"/>
+	<dubbo:consumer check="${dubbo.check}" />
+
+	<!-- 短信发送记录-->
+	<dubbo:reference id="recordManageService"
+					 interface="com.pzj.core.smp.record.IRecordManageService" version="1.0"
+					 timeout="${dubbo.consumer.timeout}" url="${dubbo.url}"/>
+	<!-- 短信错误记录-->
+	<dubbo:reference id="errorRecordManageService"
+					 interface="com.pzj.core.smp.errorRecord.IErrorRecordManageService" version="1.0"
+					 timeout="${dubbo.consumer.timeout}" url="${dubbo.url}"/>
+
+	<!-- 业务线管理-->
+	<dubbo:reference id="businManageService"
+					 interface="com.pzj.core.smp.business.IBusinManageService" version="1.0"
+					 timeout="${dubbo.consumer.timeout}" url="${dubbo.url}"/>
+
+</beans>

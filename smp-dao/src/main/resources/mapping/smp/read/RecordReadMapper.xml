@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.pzj.core.smp.read.RecordReadMapper" >
+  <resultMap id="BaseResultMap" type="com.pzj.core.smp.record.RecordEntity" >
+    <id column="record_id" property="recordId" jdbcType="BIGINT" />
+    <result column="phone_number" property="phoneNumber" jdbcType="CHAR" />
+    <result column="state" property="state" jdbcType="BIT" />
+    <result column="channel_id" property="channelId" jdbcType="BIGINT" />
+    <result column="channel_name" property="channelName" jdbcType="VARCHAR" />
+    <result column="content" property="content" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="send_num" property="sendNum" jdbcType="INTEGER" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="link_id" property="linkId" jdbcType="VARCHAR" />
+  </resultMap>
+
+  <!-- 所有字段 -->
+  <sql id="base_columns">
+    record_id,
+    phone_number,
+    state,
+    channel_id,
+    channel_name,
+    content,
+    create_time,
+    send_num,
+    update_time,
+    link_id
+  </sql>
+
+  <!-- 根据id查询短信发送记录-->
+  <select id="selectById" resultMap="BaseResultMap">
+    select <include refid="base_columns" />
+    from record
+    where record_id = #{recordId,jdbcType=BIGINT}
+
+  </select>
+
+  <!-- 统计查询-->
+  <select id="countByParam" resultType="int">
+    select
+    count(record_id)
+    from record
+    <include refid="base_page_sql" />
+  </select>
+
+  <!-- 筛选条件 -->
+  <sql id="base_page_sql">
+    <if test=" record != null ">
+      <trim prefixOverrides="and">
+        <where>
+          <if test=" record.phoneNumber != null ">
+            phone_number = #{ record.phoneNumber }
+          </if>
+          <if test=" record.state != null ">
+            and state = #{ record.state }
+          </if>
+          <if test=" record.createTime != null ">
+            and (select Date(create_time)) = (select Date(#{ record.createTime }))
+          </if>
+        </where>
+      </trim>
+    </if>
+  </sql>
+
+
+  <!--分页查询 -->
+  <select id="selectByParam" resultMap="BaseResultMap">
+    select <include refid="base_columns" />
+    from record
+    <include refid="base_page_sql" />
+  </select>
+</mapper>
