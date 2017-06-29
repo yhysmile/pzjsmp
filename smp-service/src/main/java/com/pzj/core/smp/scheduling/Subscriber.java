@@ -15,6 +15,8 @@ class Subscriber implements Runnable {
 
 	private SmpCacheKey[] cacheKeys;
 
+	private String[] keys;
+
 	private QueueService queueService;
 
 	private SubscribeListener subscribeListener = null;
@@ -23,6 +25,7 @@ class Subscriber implements Runnable {
 		this.queueService = queueService;
 		this.subscribeListener = subscribeListener;
 		this.cacheKeys = SmpCacheKey.newKeys(queueNames);
+		this.keys = SmpCacheKey.kevStrings(cacheKeys);
 	}
 
 	public void ready() {
@@ -39,14 +42,16 @@ class Subscriber implements Runnable {
 	 * </p>
 	 */
 	public QueueData pullMessageTasks() {
-		QueueData data = queueService.poll(6, cacheKeys);
+		QueueData data = queueService.poll(6, keys);
 		return data;
 	}
 
 	public QueueData pullMessageTasks(int timeout) {
-		QueueData data = queueService.poll(timeout, cacheKeys);
+		QueueData data = queueService.poll(timeout, keys);
 		return data;
 	}
+
+
 
 	public void enable() {
 		this.run = true;

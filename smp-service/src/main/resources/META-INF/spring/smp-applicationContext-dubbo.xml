@@ -6,10 +6,13 @@
     http://code.alibabatech.com/schema/dubbo
     http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
 
+	<dubbo:provider delay="-1" timeout="6000"  retries="0"/> 
     <!-- 访问日志 -->
     <dubbo:protocol accesslog="false"/>
 
     <dubbo:service ref="sendMessageService" interface="com.pzj.core.smp.channel.SendMessageService" />
+    
+    <dubbo:service ref="sendMessageService" interface="com.pzj.core.smp.channel.AccountWarnService" />
 
     <dubbo:service ref="recordManageService" interface="com.pzj.core.smp.record.IRecordManageService"/>
 

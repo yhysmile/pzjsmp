@@ -7,6 +7,7 @@ import com.pzj.core.smp.message.MessageEntity;
  * Created by Administrator on 2017-1-3.
  */
 class QueueData {
+	private String transactionId = null;
 	private MessageEntity message = null;
 	private DeliveryInfoEntity deliveryInfo = null;
 
@@ -24,5 +25,13 @@ class QueueData {
 
 	public void setDeliveryInfo(DeliveryInfoEntity deliveryInfo) {
 		this.deliveryInfo = deliveryInfo;
+	}
+
+	public String getTransactionId() {
+		return transactionId;
+	}
+
+	public void setTransactionId(String transactionId) {
+		this.transactionId = transactionId;
 	}
 }

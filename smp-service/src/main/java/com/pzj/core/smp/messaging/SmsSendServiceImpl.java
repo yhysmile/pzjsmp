@@ -5,15 +5,19 @@ import java.net.HttpURLConnection;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.pzj.commons.utils.HttpUtils;
 import com.pzj.core.smp.util.SMSParam;
+import com.pzj.framework.converter.JSONConverter;
 import com.pzj.message.sms.service.SmsSendService;
 
 @Service("smsSendService")
 public class SmsSendServiceImpl implements SmsSendService {
 
+	private final Logger logger = LoggerFactory.getLogger(SmsSendServiceImpl.class);
 	private static final String SMS_SENDER_URL = "http://114.255.71.158:8061/?";
 	private static final String PREVIOUS_SIGNATURE = "【票之家】";
 	private static final int MAX_CONTENT_LENGTH = 300; // 鸿联最长350字节，那么我们的字符串长度最长只能设置到150，因为汉字2字节
@@ -46,7 +50,7 @@ public class SmsSendServiceImpl implements SmsSendService {
 	private void sendSMS(SMSParam param) {
 		StringBuilder sb = new StringBuilder(param.toString()).append("\n");
 		String url = SMS_SENDER_URL.concat(param.toString());
-		System.out.println("发送短信请求 url===" + url + ";;;;;url end===");
+		logger.info("调用老的发送短信接口，url:{}", url);
 		try {
 			HttpURLConnection conn = HttpUtils.prepareHttpConnection(url, HttpUtils.GET_METHOD);
 			int response_code = conn.getResponseCode();
@@ -59,9 +63,10 @@ public class SmsSendServiceImpl implements SmsSendService {
 				sb.append("短信发送结果：").append(content).append("\n");
 			}
 		} catch (Exception ex) {
+			logger.error("调用老的短信服务发送接口异常，参数为:{},异常信息为:{}", JSONConverter.toJson(param), ex);
 			ex.printStackTrace();
 		}
-		System.out.println(sb.toString());
+		logger.info("调用老的发送短信接口发送参数以及发送结果信息:{}", sb);
 	}
 
 }

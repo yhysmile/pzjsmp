@@ -17,5 +17,5 @@
 
 	<dubbo:consumer check="false" />
 
-	
+	<dubbo:reference id="accountWarnService" interface="com.pzj.core.smp.channel.AccountWarnService" />
 </beans>

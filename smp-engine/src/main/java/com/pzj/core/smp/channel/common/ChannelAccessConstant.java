@@ -33,7 +33,20 @@ public class ChannelAccessConstant {
 	public static final int HLQXT_CONTENT_MAX = 350;
 	public static final int HLQXT_PHONE_MAX = 50;
 
-	public static final int SINGLE_CHANNEL_RETRY_TIMES = 2;
+	public static final int SINGLE_CHANNEL_RETRY_TIMES = 3;
+	public static final int RESTRY_SLEEP_TIME = 500;
 
 	public static final String GST_SEND_SUCCESS_FLAG = "OK:";
+
+	public static final String HLQXT_ACCOUNT_WARN_SUBJECT = "鸿联企信通短信异常通知";
+	public static final String HLQXT_ACCOUNT_WARN_CONTENT = "鸿联企信通短信通道账户余额不足，#，请及时充值，以免影响短信接收！！！";
+
+	public static final String GST_ACCOUNT_WARN_SUBJECT = "高斯通短信异常通知";
+	public static final String GST_ACCOUNT_WARN_CONTENT = "高斯通短信通道账户余额不足，#，请及时充值，以免影响短信接收！！！";
+
+	public static final String GST_ACCOUNT_BALANCE_FLAG = "balance";
+	public static final String GST_ACCOUNT_PRICE_FLAG = "smsPrice";
+
+	public static final int HTTP_RESP_SUCCESS_CODE = 200;
+
 }

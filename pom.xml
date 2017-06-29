@@ -28,12 +28,14 @@
         <pzj.smp.version>1.0.0-SNAPSHOT</pzj.smp.version>
 
         <pzj.toolkit.version>1.3.3</pzj.toolkit.version>
-        <pzj.logger.version>1.0.0</pzj.logger.version>
+        <pzj.logger.version>1.0.0-SNAPSHOT</pzj.logger.version>
 
         <pzj.sharding.version>1.0.5-RELEASE</pzj.sharding.version>
 
-		<pzj.idgen.version>1.1.1</pzj.idgen.version>
+		<pzj.idgen.version>1.1.1-SNAPSHOT</pzj.idgen.version>
         <pzj.disconf.version>2.6.35.4</pzj.disconf.version>
+        
+        <orange.version>1.0-SNAPSHOT</orange.version>
 
         <springframework.version>4.3.0.RELEASE</springframework.version>
         <spring.asm.version>3.1.4.RELEASE</spring.asm.version>
@@ -85,8 +87,8 @@
             </dependency>
             <dependency>
                 <groupId>com.pzj.framework</groupId>
-                <artifactId>cache</artifactId>
-                <version>1.1-SNAPSHOT</version>
+                <artifactId>pzj-cache</artifactId>
+                <version>1.1.1-SNAPSHOT</version>
             </dependency>
 
             <dependency>

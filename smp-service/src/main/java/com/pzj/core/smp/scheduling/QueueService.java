@@ -6,5 +6,5 @@ package com.pzj.core.smp.scheduling;
 interface QueueService<T> {
 	void push(T queueName, QueueData data);
 
-	QueueData poll(int timeout, T... queueNames);
+	QueueData poll(int timeout, String[] queueNames);
 }

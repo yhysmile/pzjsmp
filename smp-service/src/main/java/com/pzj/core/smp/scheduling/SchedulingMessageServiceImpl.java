@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,11 +60,12 @@ public class SchedulingMessageServiceImpl implements ProcessListener, SubscribeL
 
 	/**
 	 * 发布指定业务的消息任务
+	 * @param transactionId
 	 * @param deliveryInfo
 	 * @param message
 	 */
-	public void publishMessage(DeliveryInfoEntity deliveryInfo, MessageEntity message) {
-		publishService.publishMessage(deliveryInfo, message);
+	public void publishMessage(String transactionId, DeliveryInfoEntity deliveryInfo, MessageEntity message) {
+		publishService.publishMessage(transactionId, deliveryInfo, message);
 	}
 
 	public void startSubscribeAll() {
@@ -108,20 +110,24 @@ public class SchedulingMessageServiceImpl implements ProcessListener, SubscribeL
 	 * @param message
 	 */
 	@Override
-	public void processMessage(DeliveryInfoEntity deliveryInfo, MessageEntity message) {
-		logger.info("收到一个消息：业务线 {} 优先级 {} ", deliveryInfo.address().businessName(), deliveryInfo.address().priority()
-				.name());
+	public void processMessage(String transactionId, DeliveryInfoEntity deliveryInfo, MessageEntity message) {
+		MDC.put("requestId", transactionId);
+		Long beginDate = System.currentTimeMillis();
+		Long endDate = null;
+		logger.info("收到一个消息：事务为 {}，业务线 {} ，优先级 {} ，当前时间为 {}", transactionId, deliveryInfo.address().businessName(),
+				deliveryInfo.address().priority().name(), beginDate);
 
 		List<String> phoneNums = message.phoneNums();
 		if (phoneNums == null || phoneNums.isEmpty()) {
-			logger.warn("没有可用的手机号！");
+			logger.warn("事务为 {}，没有可用的手机号！", transactionId);
 			return;
 		}
-		logger.info("手机号：{}", phoneNums);
+		logger.info("事务为 {}，手机号：{}", transactionId, phoneNums);
 
-		logger.info("调用发送开始，当前时间为 {}", System.currentTimeMillis());
+		logger.info("调用发送开始，事务为 {}，当前时间为 {}", transactionId, System.currentTimeMillis());
 		doSendMessage(phoneNums, message.content(), deliveryInfo.createDate(), deliveryInfo.timeOut());
-		logger.info("调用发送结束，当前时间为 {}", System.currentTimeMillis());
+		endDate = System.currentTimeMillis();
+		logger.info("调用发送结束，事务为 {}，当前时间为 {}， 总耗时为 {}", transactionId, endDate, endDate - beginDate);
 	}
 
 	private void doSendMessage(List<String> phoneNums, String content, Date createDate, Long timeOut) {
@@ -145,7 +151,8 @@ public class SchedulingMessageServiceImpl implements ProcessListener, SubscribeL
 	 */
 	@Override
 	public void handQueueData(QueueData queueData) {
-		this.processService.processQueueData(queueData.getDeliveryInfo(), queueData.getMessage());
+		this.processService.processQueueData(queueData.getTransactionId(), queueData.getDeliveryInfo(),
+				queueData.getMessage());
 	}
 
 	/**
@@ -156,18 +163,18 @@ public class SchedulingMessageServiceImpl implements ProcessListener, SubscribeL
 	@Override
 	public void push(SmpCacheKey cacheKey, QueueData data) {
 		String json = serializeTheMessage(data);
-		cacheService.queuePushToRight(cacheKey, json);
+		cacheService.queuePushToRight(cacheKey.key(), json);
 	}
 
 	/**
 	 * subscribeService 使用
 	 * @param timeout
-	 * @param cacheKeys
+	 * @param keys
 	 * @return
 	 */
 	@Override
-	public QueueData poll(int timeout, SmpCacheKey... cacheKeys) {
-		List<String> datas = cacheService.queueBlockPopFromLeft(timeout, cacheKeys);
+	public QueueData poll(int timeout, String[] keys) {
+		List<String> datas = cacheService.queueBlockPopFromLeft(timeout, keys);
 		return convertToQueueData(datas);
 	}
 
@@ -193,8 +200,12 @@ public class SchedulingMessageServiceImpl implements ProcessListener, SubscribeL
 				jsonObject.getString("priority"));
 		DeliveryInfoEntity deliveryInfo = new DeliveryInfoEntity(address, jsonObject.getDate("createDate"),
 				jsonObject.getLong("timeOut"));
+
+		String transactionId = jsonObject.getString("transactionId");
+
 		result.setMessage(message);
 		result.setDeliveryInfo(deliveryInfo);
+		result.setTransactionId(transactionId);
 		return result;
 	}
 
@@ -227,6 +238,7 @@ public class SchedulingMessageServiceImpl implements ProcessListener, SubscribeL
 		jsonObject.put("priority", address.priority().toString());
 		jsonObject.put("createDate", deliveryInfo.createDate());
 		jsonObject.put("timeOut", deliveryInfo.timeOut());
+		jsonObject.put("transactionId", data.getTransactionId());
 
 		return jsonObject.toJSONString();
 	}

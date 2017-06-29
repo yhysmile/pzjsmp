@@ -27,6 +27,17 @@ public class SmpCacheKey extends CacheKey {
 		return result;
 	}
 
+	public static String[] kevStrings(SmpCacheKey[] smpCacheKeys){
+		if (smpCacheKeys == null)
+			return null;
+
+		String[] result = new String[smpCacheKeys.length];
+		for (int i = 0; i < smpCacheKeys.length; i++) {
+			result[i] = smpCacheKeys[i].key();
+		}
+		return result;
+	}
+
 	@Override
 	public String toString() {
 		return key();

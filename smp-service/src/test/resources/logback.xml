@@ -6,7 +6,7 @@
 	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
 			<layout class="com.pzj.framework.logger.layout.LoggerPatternLayout">
-				<pattern>%d{HH:mm:ss.SSS} [${enginee}] %inet [%5p] [%C{0}.%M] -> %m%n</pattern>
+				<pattern>%d{HH:mm:ss.SSS} [${enginee}] %inet [%5p] [%C{0}.%M] -> %X{requestId} %m%n</pattern>
 			</layout>
 		</encoder>
 	</appender>
@@ -14,7 +14,7 @@
 		<file>${log.path}/smp.log</file>
 		<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
 			<layout class="com.pzj.framework.logger.layout.LoggerPatternLayout">
-				<pattern>%d{HH:mm:ss.SSS} [${enginee}] %inet [%5p] [%C{0}.%M] -> %m%n</pattern>
+				<pattern>%d{HH:mm:ss.SSS} [${enginee}] %inet [%5p] [%C{0}.%M] -> %X{requestId} %m%n</pattern>
 			</layout>
 		</encoder>
 	</appender>

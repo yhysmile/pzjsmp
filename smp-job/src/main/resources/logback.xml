@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <configuration debug="false" scan="true">
 	
-	<property name="log.path" value="../logs" />
+	<property name="log.path" value="/data/logs" />
 	
 	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>

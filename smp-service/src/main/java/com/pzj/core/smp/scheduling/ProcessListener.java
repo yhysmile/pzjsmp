@@ -11,8 +11,9 @@ interface ProcessListener {
 	/**
 	 * 处理消息
 	 *
+	 * @param transactionId
 	 * @param deliveryInfo
 	 * @param message
 	 */
-	void processMessage(DeliveryInfoEntity deliveryInfo, MessageEntity message);
+	void processMessage(String transactionId, DeliveryInfoEntity deliveryInfo, MessageEntity message);
 }

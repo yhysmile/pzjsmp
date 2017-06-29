@@ -1,7 +1,7 @@
 package com.pzj.core.smp.channel.enums;
 
 public enum ChannelIndentityEnum {
-	HLQXT(1, "鸿联企信通短信通道"), GST(2, "高斯通短信通道");
+	HLQXT(1, "鸿联企信通短信通道"), GST(2, "高斯通短信通道"), MAS(3, "MAS政企云短信通道");
 
 	private Integer key;
 	private String value;

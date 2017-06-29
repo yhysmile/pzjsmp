@@ -10,7 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.pzj.core.smp.channel.common.ChannelAccessConstant;
 import com.pzj.core.smp.channel.enums.ChannelStateEnum;
+import com.pzj.core.smp.channel.model.ChannelExceptionInfo;
 import com.pzj.core.smp.channel.model.ChannelInfo;
 import com.pzj.core.smp.channel.model.ChannelInfoQuery;
 import com.pzj.core.smp.channel.model.ChannelRetryParam;
@@ -30,7 +32,9 @@ public class IntelSwitchChannelManage {
 	 * @return ChannelInfo
 	 */
 	public ChannelInfo failRetryReboot(ChannelRetryParam channelRetry) {
-		logger.info("invoke send message intel switch,request param:{}", JSONConverter.toJson(channelRetry));
+		if (logger.isDebugEnabled()) {
+			logger.debug("invoke send message intel switch,request param:{}", JSONConverter.toJson(channelRetry));
+		}
 
 		ChannelInfo channelInfo = computeChannel(channelRetry);
 		if (logger.isDebugEnabled()) {
@@ -53,7 +57,8 @@ public class IntelSwitchChannelManage {
 		while (itera.hasNext()) {
 			channelInfo = itera.next();
 			sendNum = retryChannelMap.get(channelInfo.getId());
-			if (null != sendNum && (sendNum == -1 || sendNum == 2)) {
+			if (null != sendNum
+					&& (sendNum == ChannelExceptionInfo.notAvaiRetryNum || sendNum >= ChannelAccessConstant.SINGLE_CHANNEL_RETRY_TIMES)) {
 				itera.remove();
 			}
 		}
@@ -70,13 +75,15 @@ public class IntelSwitchChannelManage {
 
 		//重试当前使用通道继续重试
 		ChannelInfo channelInfo = null;
-		if (null == retryNum || retryNum == 1) {
-			isFilterChannel = checkCurChannel(channelInfo, channelRetry.getChannelId());
-		} else {//切换最优通道
-			isFilterChannel = Boolean.TRUE;
+		if (null == retryNum
+				|| (retryNum != ChannelExceptionInfo.notAvaiRetryNum && retryNum < ChannelAccessConstant.SINGLE_CHANNEL_RETRY_TIMES)) {
+			channelInfo = checkCurChannel(channelRetry.getChannelId());
+			if (null != channelInfo) {
+				isFilterChannel = Boolean.TRUE;
+			}
 		}
 
-		if (isFilterChannel) {
+		if (!isFilterChannel) {
 			//获取所有可用发送通道列表
 			List<ChannelInfo> downlinkChannels = filterChannelManage.getDownlinkChannels();
 			//过滤发送异常的通道
@@ -94,13 +101,13 @@ public class IntelSwitchChannelManage {
 	 * @param channelId
 	 * @return Boolean true:可用；FALSE:不可用
 	 */
-	private Boolean checkCurChannel(ChannelInfo channelInfo, Long channelId) {
+	private ChannelInfo checkCurChannel(Long channelId) {
 		ChannelInfoQuery channelInfoQuery = new ChannelInfoQuery();
 		channelInfoQuery.setId(channelId);
-		channelInfo = channelQueryManage.queryChannelInfoById(channelInfoQuery);
+		ChannelInfo channelInfo = channelQueryManage.queryChannelInfoById(channelInfoQuery);
 		if (null == channelInfo || channelInfo.getState() != ChannelStateEnum.AVAILABLE.getState()) {
-			return Boolean.FALSE;
+			channelInfo = null;
 		}
-		return Boolean.TRUE;
+		return channelInfo;
 	}
 }

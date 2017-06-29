@@ -4,18 +4,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ChannelRetryParam implements java.io.Serializable {
+public class ChannelRetryParam extends ChannelSendMessage implements java.io.Serializable {
 
 	private static final long serialVersionUID = -8076420787923572210L;
-
-	/**
-	 * 短信内容
-	 */
-	private String msgContent;
-	/**
-	 * 手机号
-	 */
-	private List<String> phoneNumber;
 
 	/** 请求通道响应码*/
 	private Integer respCode;
@@ -42,25 +33,9 @@ public class ChannelRetryParam implements java.io.Serializable {
 	}
 
 	public ChannelRetryParam(List<String> phoneNumber, String msgContent, Integer channelIdentity) {
-		this.phoneNumber = phoneNumber;
-		this.msgContent = msgContent;
+		this.setPhoneNumber(phoneNumber);
+		this.setContent(msgContent);
 		this.channelIdentity = channelIdentity;
-	}
-
-	public String getMsgContent() {
-		return msgContent;
-	}
-
-	public void setMsgContent(String msgContent) {
-		this.msgContent = msgContent;
-	}
-
-	public List<String> getPhoneNumber() {
-		return phoneNumber;
-	}
-
-	public void setPhoneNumber(List<String> phoneNumber) {
-		this.phoneNumber = phoneNumber;
 	}
 
 	public Integer getRespCode() {

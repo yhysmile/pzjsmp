@@ -15,7 +15,9 @@ import com.pzj.core.smp.channel.common.ChannelAccessConstant;
 import com.pzj.core.smp.channel.common.StrUtils;
 import com.pzj.core.smp.channel.enums.ChannelIndentityEnum;
 import com.pzj.core.smp.channel.enums.ChannelTypeEnum;
+import com.pzj.core.smp.channel.enums.GSTRespCodeEnum;
 import com.pzj.core.smp.channel.enums.HLQXTRespCodeEnum;
+import com.pzj.core.smp.channel.enums.MASRespCodeEnum;
 import com.pzj.core.smp.channel.model.ChannelInfo;
 import com.pzj.core.smp.channel.model.ChannelSendMessage;
 import com.pzj.core.smp.channel.model.SendSmsChannelResp;
@@ -26,6 +28,7 @@ import com.pzj.core.smp.errorRecord.ErrorRecordService;
 import com.pzj.core.smp.record.RecordModel;
 import com.pzj.core.smp.record.RecordService;
 import com.pzj.core.smp.record.RecordStateEnum;
+import com.pzj.framework.converter.JSONConverter;
 
 @Component("channelSendResultManage")
 public class ChannelSendResultManage {
@@ -44,6 +47,11 @@ public class ChannelSendResultManage {
 	 */
 	public void saveSendMessageResult(ChannelSendMessage sendMessage, SendSmsChannelResp sendSmsChannelResp,
 			ChannelInfo channelInfo) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("saveSendMessageResult start sendMessage:{}, sendSmsChannelResp:{}, channelInfo:{}",
+					JSONConverter.toJson(sendMessage), JSONConverter.toJson(sendSmsChannelResp),
+					JSONConverter.toJson(channelInfo));
+		}
 		String sendState = RecordStateEnum.getRecordValue(RecordStateEnum.SEND_ERROR);
 		String sendLinkId = sendMessage.getSendLinkId();
 		if (StrUtils.checkStringIsNullStrict(sendLinkId) && null != sendSmsChannelResp) {
@@ -57,7 +65,8 @@ public class ChannelSendResultManage {
 		}
 
 		//检查此次发送是否失败
-		Boolean isErr = checkIsErr(sendSmsChannelResp, getChannelIdentity(channelInfo));
+		Integer channelIdentity = getChannelIdentity(channelInfo);
+		Boolean isErr = checkIsErr(sendSmsChannelResp, channelIdentity);
 		if (!isErr) {
 			sendState = RecordStateEnum.getRecordValue(RecordStateEnum.SEND_SUCCESS);
 		}
@@ -84,7 +93,7 @@ public class ChannelSendResultManage {
 			recordModel.setSendContent(sendMessage.getContent());
 			recordModel.setSendTime(time);
 			recordModel.setSendNum(1);
-			sendLinkId = sendLinkId == null ? "0" : sendLinkId;
+			sendLinkId = StrUtils.checkStringIsNullStrict(sendLinkId) ? "0" : sendLinkId;
 			recordModel.setSendLinkId(sendLinkId);
 			recordModels.add(recordModel);
 
@@ -95,19 +104,21 @@ public class ChannelSendResultManage {
 			List<Long> recordIds = recordService.insertBatch(recordModels);
 
 			String errTip = sendMessage.getErrTip();
-
+			Boolean errFlag = !StrUtils.checkStringIsNullStrict(errTip);
 			//保存短信发送错误日志
-			if (isErr || !StrUtils.checkStringIsNullStrict(errTip)) {
+			if (isErr || errFlag) {
 				logger.error(
 						"send message return error record error log, param sendMessage:{},sendSmsChannelResp:{},channelInfo:{}",
-						sendMessage, sendSmsChannelResp, channelInfo);
+						JSONConverter.toJson(sendMessage), JSONConverter.toJson(sendSmsChannelResp),
+						JSONConverter.toJson(channelInfo));
+				String respContent = getErrDetail(channelIdentity, sendSmsChannelResp);
+				errTip = errFlag ? errTip : respContent;
 				for (Long recordId : recordIds) {
 					time = new Timestamp(System.currentTimeMillis());
 
 					ErrorRecordModel errorRecordModel = new ErrorRecordModel();
 					errorRecordModel.setSendRecordId(recordId);
-					errorRecordModel.setSendErrDetail(!StrUtils.checkStringIsNullStrict(errTip) ? errTip : sendMessage
-							.getContent());
+					errorRecordModel.setSendErrDetail(errTip);
 					errorRecordModel.setSendTime(time);
 					errorRecordService.insert(errorRecordModel);
 				}
@@ -131,6 +142,8 @@ public class ChannelSendResultManage {
 			channelIdentity = ChannelIndentityEnum.HLQXT.getKey();
 		} else if (ChannelTypeEnum.GST_DOWNLINK == channelType) {
 			channelIdentity = ChannelIndentityEnum.GST.getKey();
+		} else if (ChannelTypeEnum.MAS_DOWNLINK == channelType) {
+			channelIdentity = ChannelIndentityEnum.MAS.getKey();
 		}
 		if (null == channelIdentity) {
 			throw new SmpException(SmpExceptionCode.NO_AVAIABLE_CHANNEL_ERR);
@@ -148,7 +161,6 @@ public class ChannelSendResultManage {
 	public Boolean checkIsErr(SendSmsChannelResp sendSmsChannelResp, Integer channelIdentity) {
 		Boolean flag = Boolean.TRUE;
 		if (null == sendSmsChannelResp || null == channelIdentity || null == sendSmsChannelResp.getCode()) {
-			flag = Boolean.FALSE;
 			return flag;
 		}
 		if (ChannelIndentityEnum.HLQXT.getKey() == channelIdentity
@@ -157,7 +169,35 @@ public class ChannelSendResultManage {
 		} else if (ChannelIndentityEnum.GST.getKey() == channelIdentity
 				&& sendSmsChannelResp.getContent().contains(ChannelAccessConstant.GST_SEND_SUCCESS_FLAG)) {
 			flag = Boolean.FALSE;
+		} else if (ChannelIndentityEnum.MAS.getKey() == channelIdentity
+				&& sendSmsChannelResp.getContent().equals(MASRespCodeEnum.SUCCESS.getCode())) {
+			flag = Boolean.FALSE;
 		}
 		return flag;
+	}
+
+	/**
+	 * 获取通道错误详情
+	 * @param channelIdentity
+	 * @param sendSmsChannelResp
+	 * @return
+	 */
+	private String getErrDetail(Integer channelIdentity, SendSmsChannelResp sendSmsChannelResp) {
+		String errDetail = "";
+		if (null == channelIdentity || null == sendSmsChannelResp) {
+			return errDetail;
+		}
+		String respContent = sendSmsChannelResp.getContent() == null ? "" : sendSmsChannelResp.getContent();
+		if (ChannelIndentityEnum.HLQXT.getKey() == channelIdentity) {
+			HLQXTRespCodeEnum hlqxtResp = HLQXTRespCodeEnum.getRespCode(respContent);
+			errDetail = hlqxtResp == null ? respContent : hlqxtResp.getCode() + ":" + hlqxtResp.getDetail();
+		} else if (ChannelIndentityEnum.GST.getKey() == channelIdentity) {
+			GSTRespCodeEnum gstResp = GSTRespCodeEnum.getRespCode(respContent);
+			errDetail = gstResp == null ? respContent : gstResp.getCode() + ":" + gstResp.getDetail();
+		} else if (ChannelIndentityEnum.MAS.getKey() == channelIdentity) {
+			MASRespCodeEnum masResp = MASRespCodeEnum.getRespCode(respContent);
+			errDetail = masResp == null ? respContent : masResp.getCode() + ":" + masResp.getDetail();
+		}
+		return errDetail;
 	}
 }

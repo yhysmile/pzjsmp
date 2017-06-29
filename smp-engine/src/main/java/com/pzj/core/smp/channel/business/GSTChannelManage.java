@@ -20,11 +20,13 @@ import com.pzj.core.smp.channel.model.ChannelInfoQuery;
 import com.pzj.core.smp.channel.model.ChannelSendMessage;
 import com.pzj.core.smp.channel.model.ChannelUserinfo;
 import com.pzj.core.smp.channel.model.ChannelUserinfoQuery;
+import com.pzj.core.smp.channel.model.GSTAccountParam;
 import com.pzj.core.smp.channel.model.GSTSendParam;
 import com.pzj.core.smp.channel.model.HttpRequest;
 import com.pzj.core.smp.channel.model.SendSmsChannelResp;
 import com.pzj.core.smp.common.exception.SmpException;
 import com.pzj.core.smp.common.exception.SmpExceptionCode;
+import com.pzj.framework.converter.JSONConverter;
 
 @Component("gstChannelManage")
 public class GSTChannelManage {
@@ -50,7 +52,7 @@ public class GSTChannelManage {
 			throw new SmpException(SmpExceptionCode.NOT_FOUND_GST_CHANNELUSER_ERR);
 		}
 		//获取通道信息
-		ChannelInfo channelInfo = getChannelInfo();
+		ChannelInfo channelInfo = getChannelInfo(ChannelTypeEnum.GST_DOWNLINK.getKey());
 		if (ObjUtils.checkObjectIsNull(channelInfo)) {
 			throw new SmpException(SmpExceptionCode.NOT_FOUND_GST_CHANNEL_ERR);
 		}
@@ -64,10 +66,51 @@ public class GSTChannelManage {
 	}
 
 	/**
+	 * 获取高斯通账户信息
+	 * @return SendSmsChannelResp
+	 * @throws IOException
+	 */
+	public SendSmsChannelResp getAccountInfo() throws IOException {
+		//获取通道用户信息
+		ChannelUserinfo channelUserinfo = getChannelUserinfo();
+		if (ObjUtils.checkObjectIsNull(channelUserinfo)) {
+			throw new SmpException(SmpExceptionCode.NOT_FOUND_GST_CHANNELUSER_ERR);
+		}
+
+		//获取通道信息
+		ChannelInfo channelInfo = getChannelInfo(ChannelTypeEnum.GST_BALANCE.getKey());
+		if (ObjUtils.checkObjectIsNull(channelInfo)) {
+			throw new SmpException(SmpExceptionCode.NOT_FOUND_GST_CHANNEL_ERR);
+		}
+		GSTAccountParam gstAccountParam = initAccoutParam(channelUserinfo);
+
+		SendSmsChannelResp smsChannelResp = getAccount(gstAccountParam, channelInfo);
+
+		return smsChannelResp;
+	}
+
+	private SendSmsChannelResp getAccount(GSTAccountParam gstAccountParam, ChannelInfo channelInfo) throws IOException {
+		StringBuffer urlBuffer = new StringBuffer(channelInfo.getUrl());
+		urlBuffer.append("?").append(gstAccountParam.getNeedParam());
+
+		logger.info("高斯通，获取账户链接：" + urlBuffer);
+
+		HttpRequest httpRequest = new HttpRequest();
+		httpRequest.setUrl(urlBuffer.toString());
+		httpRequest.setReqCharacter(getReqHttpCode());
+		httpRequest.setRespCharacter(getRespHttpCode());
+
+		SendSmsChannelResp channelResp = httpRequestManage.doGet(httpRequest);
+
+		logger.info("高斯通，获取账户结果：{}", JSONConverter.toJson(channelResp));
+		return channelResp;
+	}
+
+	/**
 	 * 获取通道用户信息
 	 * @return ChannelUserinfo
 	 */
-	private ChannelUserinfo getChannelUserinfo() {
+	public ChannelUserinfo getChannelUserinfo() {
 		ChannelUserinfoQuery queryModel = new ChannelUserinfoQuery();
 		queryModel.setIndentity(ChannelIndentityEnum.GST.getKey());
 		ChannelUserinfo channelUserinfo = channelUserinfoQueryManage.queryUserByChannelIdentity(queryModel);
@@ -78,9 +121,9 @@ public class GSTChannelManage {
 	 * 获取通道信息
 	 * @return ChannelInfo
 	 */
-	private ChannelInfo getChannelInfo() {
+	private ChannelInfo getChannelInfo(Integer type) {
 		ChannelInfoQuery channelInfoQuery = new ChannelInfoQuery();
-		channelInfoQuery.setType(ChannelTypeEnum.GST_DOWNLINK.getKey());
+		channelInfoQuery.setType(type);
 		ChannelInfo channelInfo = channelQueryManage.queryChannelInfoByType(channelInfoQuery);
 		return channelInfo;
 	}
@@ -129,9 +172,20 @@ public class GSTChannelManage {
 		httpRequest.setRespCharacter(getRespHttpCode());
 
 		SendSmsChannelResp channelResp = httpRequestManage.doGet(httpRequest);
+		//		SendSmsChannelResp channelResp = new SendSmsChannelResp();
+		//		channelResp.setCode(200);
+		//		channelResp.setContent(GSTRespCodeEnum.FREQUENT_REQUEST.getCode());
 
+		logger.info("高斯通，短信发送结果：{}", JSONConverter.toJson(channelResp));
 		return channelResp;
 
+	}
+
+	private GSTAccountParam initAccoutParam(ChannelUserinfo channelUserinfo) {
+		GSTAccountParam gstAccount = new GSTAccountParam();
+		gstAccount.setUsername(channelUserinfo.getUsername());
+		gstAccount.setPassword(channelUserinfo.getPassword());
+		return gstAccount;
 	}
 
 	/**

@@ -9,4 +9,5 @@ public interface SendMessageService {
 	 * @return Boolean true:成功，false:失败
 	 */
 	public Boolean sendMessage(ChannelSendMessage sendMessage);
+
 }

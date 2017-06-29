@@ -2,6 +2,7 @@ package com.pzj.core.smp.messaging;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -40,7 +41,7 @@ public class TestOldSendMessage {
 		}
 	}
 
-	//	@Test
+	@Test
 	public void testSendMail() {
 		String subject = "2我是新的短信平台邮件标题";
 		String content = "我是测试邮件内容";

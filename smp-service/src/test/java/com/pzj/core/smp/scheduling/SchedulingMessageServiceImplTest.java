@@ -2,6 +2,7 @@ package com.pzj.core.smp.scheduling;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.UUID;
 
 import javax.annotation.Resource;
 
@@ -40,7 +41,9 @@ public class SchedulingMessageServiceImplTest {
 		
 		MessageEntity message3 = new MessageEntity(Arrays.asList("15210147640"), "bxcbxcvbxcvb");*/
 
-		schedulingMessageService.publishMessage(deliveryInfo, message);
+		String transactionId = UUID.randomUUID().toString();
+
+		schedulingMessageService.publishMessage(transactionId, deliveryInfo, message);
 		/*schedulingMessageService.publishMessage(deliveryInfo, message1);
 		schedulingMessageService.publishMessage(deliveryInfo, message2);
 		schedulingMessageService.publishMessage(deliveryInfo, message3);*/

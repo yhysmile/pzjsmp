@@ -24,27 +24,32 @@ import com.pzj.core.smp.delivery.MessageHead;
 public class MessagingServiceTest {
 
 	public static void main(String[] args) {
-		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:/spring.xml");
+		ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
+				"classpath:/applicationContext-test.xml");
 	}
 
 	static DefaultMQProducer producer;
 
 	@BeforeClass
 	public static void setUpClass() throws MQClientException {
-		producer = new DefaultMQProducer("ProducerGroupName");
+
+		producer = new DefaultMQProducer("smp-service");
 		producer.setNamesrvAddr("10.0.6.25:9876");
 		producer.start();
+		System.out.println("============启动rocket mq============");
 	}
 
 	@AfterClass
 	public static void tearDownClass() throws IOException {
 		producer.shutdown();
+		System.out.println("============关闭rocket mq============");
 	}
 
 	@Test
 	public void test() {
 		MessageHead messageHead = new MessageHead("wlq_test_q", "A", 60000L);
-		MessageBean messageBean1 = new MessageBean(messageHead, Arrays.asList("15210147640"), "老朋友土好和034");
+		MessageBean messageBean1 = new MessageBean(messageHead, Arrays.asList("18210255864", "13522330020"),
+				"我是mq测试发送短信！");
 		System.out.println("content : " + messageBean1.getContent());
 
 		/*MessageBean messageBean2 = new MessageBean(messageHead, "15210147640",  "adfasdfasdfasdfasf");
@@ -62,13 +67,14 @@ public class MessagingServiceTest {
 	private void publishMessage(MessageBean messageBean) {
 		String jsonString = JSON.toJSONString(messageBean);
 		// 构建消息
-		Message msg = new Message("aafefe", jsonString.getBytes());
+		//		Message msg = new Message("smp", jsonString.getBytes());
+		Message msg = new Message("smp", "sendMessage", jsonString.getBytes());
 		// 发送消息
 		SendResult sendResult = null;
 
 		try {
 			sendResult = producer.send(msg);
-			System.out.println(sendResult);
+			System.out.println("============publishMessage result:" + sendResult);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

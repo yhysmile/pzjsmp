@@ -11,11 +11,17 @@
 
 	<bean id="jobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
 		<property name="targetObject">
-			<ref bean="CountSmsJob" />
+			<ref bean="countSms" />
 		</property>
 		<property name="targetMethod">
 			<value>countEveryWeekSms</value>
 		</property>
+	</bean>
+	
+	<!-- 账户告警 -->
+	<bean id="accountWarnDitail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="messageAccountJob"></property><!-- 指定任务类 -->
+		<property name="targetMethod" value="messageAccountWarn"></property><!-- 指定任务方法 -->
 	</bean>
 
 	<!-- 调度触发器 -->
@@ -28,13 +34,22 @@
 			<value>0 0 1 * * ?</value>
 		</property>
 	</bean>
+	
+	<!-- 短信账户定时触发器 -->
+	<bean id="accountWarnTigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="accountWarnDitail"></property>
+		<property name="cronExpression">
+			<value>0 0/10 * * * ?</value>
+		</property>
+	</bean> 
 
 	<!-- 调度工厂 -->
 	<bean id="scheduler"
 		class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
 		<property name="triggers">
 			<list>
-				<ref bean="smp-Trigger" />
+				<!-- <ref bean="smp-Trigger" /> -->
+				<ref bean="accountWarnTigger" />
 			</list>
 		</property>
 	</bean>

@@ -32,7 +32,7 @@
 
         <dependency>
             <groupId>com.pzj.framework</groupId>
-            <artifactId>cache</artifactId>
+            <artifactId>pzj-cache</artifactId>
         </dependency>
         <dependency>
             <groupId>cglib</groupId>
@@ -63,5 +63,6 @@
 		    <artifactId>commons-httpclient</artifactId>
 		    <version>${commons-httpclient.version}</version>
 		</dependency>
+		
     </dependencies>
 </project>

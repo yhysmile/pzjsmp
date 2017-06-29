@@ -1,17 +1,21 @@
 package com.pzj.core.smp.channel;
 
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.pzj.core.smp.channel.business.ChannelRetryManage;
 import com.pzj.core.smp.channel.business.ChannelSendResultManage;
 import com.pzj.core.smp.channel.business.FilterChannelManage;
+import com.pzj.core.smp.channel.business.MessageAccountManage;
 import com.pzj.core.smp.channel.business.SendMessageManage;
+import com.pzj.core.smp.channel.model.AccountWarnResp;
 import com.pzj.core.smp.channel.model.ChannelInfo;
 import com.pzj.core.smp.channel.model.ChannelRetryParam;
 import com.pzj.core.smp.channel.model.ChannelSendMessage;
@@ -20,9 +24,10 @@ import com.pzj.core.smp.channel.model.SendSmsChannelResp;
 import com.pzj.core.smp.common.exception.SmpException;
 import com.pzj.core.smp.common.exception.SmpExceptionCode;
 import com.pzj.framework.converter.JSONConverter;
+import com.pzj.message.mail.service.MailSendService;
 
 @Service("sendMessageService")
-public class SendMessageServiceImpl implements SendMessageService {
+public class SendMessageServiceImpl implements SendMessageService, AccountWarnService {
 	private final Logger logger = LoggerFactory.getLogger(SendMessageServiceImpl.class);
 
 	@Resource(name = "filterChannelManage")
@@ -33,14 +38,19 @@ public class SendMessageServiceImpl implements SendMessageService {
 	private ChannelRetryManage channelRetryManage;
 	@Resource(name = "channelSendResultManage")
 	private ChannelSendResultManage channelSendResultManage;
+	@Resource(name = "messageAccountManage")
+	private MessageAccountManage messageAccountManage;
+	@Resource(name = "mailSendService")
+	private MailSendService mailSendService;
 
 	@Resource(name = "sendMessageValidator")
 	private SendMessageValidator sendMessageValidator;
 
+	@Value("${mail.accountWarn}")
+	String accountWarnEmail;
+
 	@Override
 	public Boolean sendMessage(ChannelSendMessage sendMessage) {
-		Long startTime = System.currentTimeMillis();
-		Long stime = System.currentTimeMillis();
 		logger.info("invoke channel send message. request param:{}", JSONConverter.toJson(sendMessage));
 
 		Boolean flag = Boolean.FALSE;
@@ -50,11 +60,6 @@ public class SendMessageServiceImpl implements SendMessageService {
 			logger.error("invoke send message fail,illegal param. request:{}", JSONConverter.toJson(sendMessage));
 			throw new SmpException(SmpExceptionCode.PARAM_ERROR, paramModel.getParamErrorMsg());
 		}
-
-		Long time1 = System.currentTimeMillis();
-		logger.debug("验证参数耗时：" + (time1 - stime) + "毫秒。");
-
-		stime = System.currentTimeMillis();
 
 		//处理短信过期
 		Long expireDiff = handleMessageTime(sendMessage);
@@ -71,10 +76,6 @@ public class SendMessageServiceImpl implements SendMessageService {
 			return flag;
 		}
 
-		Long time2 = System.currentTimeMillis();
-		logger.debug("计算短信过期耗时：" + (time2 - stime) + "毫秒。");
-
-		stime = System.currentTimeMillis();
 		//获取最优通道
 		ChannelInfo channelInfo = null;
 		try {
@@ -97,10 +98,6 @@ public class SendMessageServiceImpl implements SendMessageService {
 		//获取通道标识
 		Integer channelIdentity = sendMessageManage.getChannelIdentity(channelInfo);
 
-		Long time3 = System.currentTimeMillis();
-		logger.debug("获取通道耗时：" + (time3 - stime) + "毫秒。");
-
-		stime = System.currentTimeMillis();
 		SendSmsChannelResp sendSmsChannelResp = null;
 		Boolean excepFlag = Boolean.FALSE;
 
@@ -124,10 +121,6 @@ public class SendMessageServiceImpl implements SendMessageService {
 			throw new SmpException();
 		}
 
-		Long time4 = System.currentTimeMillis();
-		logger.debug("发送短信耗时：" + (time4 - stime) + "毫秒。");
-
-		stime = System.currentTimeMillis();
 		//检测短信是否发送成功，根据通道返回结果采取重试机制
 		if (excepFlag || sendMessageManage.checkGoFailRetry(sendSmsChannelResp, channelIdentity)) {
 			ChannelRetryParam channelRetryParam = sendMessageManage.firstInitFailRetryParam(sendMessage,
@@ -135,6 +128,7 @@ public class SendMessageServiceImpl implements SendMessageService {
 			sendSmsChannelResp = channelRetryManage.channelRestry(channelRetryParam);
 			//重试后获取最新的通道
 			channelInfo = channelRetryParam.getChannelInfo();
+			sendMessage.setSendLinkId(channelRetryParam.getSendLinkId());
 
 			//重新发送后计算短信发生状态
 			if (null != sendSmsChannelResp) {
@@ -144,22 +138,13 @@ public class SendMessageServiceImpl implements SendMessageService {
 			flag = Boolean.TRUE;
 		}
 
-		Long time5 = System.currentTimeMillis();
-		logger.debug("短信重试机制耗时：" + (time5 - stime) + "毫秒。");
-
-		stime = System.currentTimeMillis();
 		//将短信发送记录存入数据库
 		channelSendResultManage.saveSendMessageResult(sendMessage, sendSmsChannelResp, channelInfo);
-
-		Long time6 = System.currentTimeMillis();
-		logger.debug("短信信息入库耗时：" + (time6 - stime) + "毫秒。");
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("invoke channel send message success. result:{}", flag);
 		}
 
-		Long endTime = System.currentTimeMillis();
-		logger.debug("发送短信总耗时：" + (endTime - startTime) + "毫秒。");
 		return flag;
 	}
 
@@ -174,10 +159,32 @@ public class SendMessageServiceImpl implements SendMessageService {
 			Long expireTime = sendMessage.getSendDate().getTime() + sendMessage.getExpireDuration(); //毫秒数 
 			Long curTime = System.currentTimeMillis();
 			expireDiff = curTime - expireTime;
-			//			if (expireTime <= curTime) {
-			//				flag = Boolean.FALSE;
-			//			}
 		}
 		return expireDiff;
 	}
+
+	@Override
+	public void accountWarn() {
+		try {
+			String[] mailtoArrays = accountWarnEmail.split(",");
+			if (mailtoArrays == null || mailtoArrays.length <= 0) {
+				logger.warn("获取短信通道账户告警发送目标邮件为空！");
+				return;
+			}
+			List<AccountWarnResp> accountWarns = messageAccountManage.accountWarn();
+			for (AccountWarnResp accountWarn : accountWarns) {
+				if (null == accountWarn) {
+					continue;
+				}
+				String subject = accountWarn.getSubject();
+				String content = accountWarn.getContent();
+				mailSendService.sendMail(subject, content, mailtoArrays);
+			}
+		} catch (Exception e) {
+			logger.error("invoke sms channel accountWarn error!", e);
+
+			throw new SmpException();
+		}
+	}
+
 }

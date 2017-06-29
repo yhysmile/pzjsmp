@@ -28,10 +28,9 @@ public class ShortMessageServiceTest {
 	@Test
 	public void sendMessage() throws IOException {
 		MessageHead messageHead = new MessageHead("wlq_test_q", "C", 30000L);
-		MessageBean messageBean = new MessageBean(messageHead, Arrays.asList("15210147640"), "ab123");
+		MessageBean messageBean = new MessageBean(messageHead, Arrays.asList("18210255864"), "aaa");
 
 		Result<Boolean> result = shortMessageService.sendMessage(messageBean);
-
 
 		logger.info("========================= test result =========================");
 		logger.info(result.getErrorMsg());

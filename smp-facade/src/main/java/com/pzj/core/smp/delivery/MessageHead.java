@@ -7,16 +7,27 @@ import java.util.Date;
  * Created by Administrator on 2016-12-29.
  */
 public class MessageHead implements Serializable {
-	// 业务名
+	/**
+	 * 业务名
+	 */
 	private String businessName;
-	// 优先级
+	/**
+	 * 优先级
+	 * 枚举：{@link MessageDict.Priority}
+	 */
 	private String priority;
-	// 模版，需要考虑下是否真的需要
+	/**
+	 * 模版，需要考虑下是否真的需要
+	 */
 	private String template;
-	// 创建时间
+	/**
+	 * 创建时间
+	 */
 	private Date createDate;
-	// 超时时间，毫秒
-	private Long timeOut;
+	/**
+	 * 超时时间，毫秒
+	 */
+	private Long timeOut = 60000L;
 
 	public MessageHead() {
 		setCreateDate(new Date());

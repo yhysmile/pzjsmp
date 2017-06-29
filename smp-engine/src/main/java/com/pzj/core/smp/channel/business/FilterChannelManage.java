@@ -67,8 +67,8 @@ public class FilterChannelManage {
 		ChannelInfo tempChannel = null;
 		while (itera.hasNext()) {
 			tempChannel = itera.next();
-			int weight = ObjUtils.checkIntegerIsNull(tempChannel.getPriorityProportion(), true) ? 1
-					: tempChannel.getPriorityProportion();
+			int weight = ObjUtils.checkIntegerIsNull(tempChannel.getPriorityProportion(), true) ? 1 : tempChannel
+					.getPriorityProportion();
 			while (weight-- > 0) {
 				tempChannels.add(tempChannel);
 			}
@@ -133,7 +133,8 @@ public class FilterChannelManage {
 			return flag;
 		}
 		if (channelType == ChannelTypeEnum.HLQXT_DOWNLINK.getKey()
-				|| channelType == ChannelTypeEnum.GST_DOWNLINK.getKey()) {
+				|| channelType == ChannelTypeEnum.GST_DOWNLINK.getKey()
+				|| channelType == ChannelTypeEnum.MAS_DOWNLINK.getKey()) {
 			flag = Boolean.TRUE;
 		}
 		return flag;

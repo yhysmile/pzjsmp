@@ -20,11 +20,13 @@ import com.pzj.core.smp.channel.model.ChannelInfoQuery;
 import com.pzj.core.smp.channel.model.ChannelSendMessage;
 import com.pzj.core.smp.channel.model.ChannelUserinfo;
 import com.pzj.core.smp.channel.model.ChannelUserinfoQuery;
+import com.pzj.core.smp.channel.model.HLQXTAccountParam;
 import com.pzj.core.smp.channel.model.HLQXTSendParam;
 import com.pzj.core.smp.channel.model.HttpRequest;
 import com.pzj.core.smp.channel.model.SendSmsChannelResp;
 import com.pzj.core.smp.common.exception.SmpException;
 import com.pzj.core.smp.common.exception.SmpExceptionCode;
+import com.pzj.framework.converter.JSONConverter;
 import com.pzj.framework.idgen.IDGenerater;
 
 @Component("hlqxtChannelManage")
@@ -56,7 +58,7 @@ public class HLQXTChannelManage {
 		}
 
 		//获取通道信息
-		ChannelInfo channelInfo = getChannelInfo();
+		ChannelInfo channelInfo = getChannelInfo(ChannelTypeEnum.HLQXT_DOWNLINK.getKey());
 		if (ObjUtils.checkObjectIsNull(channelInfo)) {
 			//			throw new NotFoundHLQXTChannelException();
 			throw new SmpException(SmpExceptionCode.NOT_FOUND_HLQXT_CHANNEL_ERR);
@@ -71,11 +73,30 @@ public class HLQXTChannelManage {
 		return smsChannelResp;
 	}
 
+	public SendSmsChannelResp getAccountInfo() throws IOException {
+		//获取通道用户信息
+		ChannelUserinfo channelUserinfo = getChannelUserinfo();
+		if (ObjUtils.checkObjectIsNull(channelUserinfo)) {
+			throw new SmpException(SmpExceptionCode.NOT_FOUND_HLQXT_CHANNELUSER_ERR);
+		}
+
+		//获取通道信息
+		ChannelInfo channelInfo = getChannelInfo(ChannelTypeEnum.HLQXT_BALANCE.getKey());
+		if (ObjUtils.checkObjectIsNull(channelInfo)) {
+			throw new SmpException(SmpExceptionCode.NOT_FOUND_HLQXT_CHANNEL_ERR);
+		}
+		HLQXTAccountParam hlqxtAccountParam = initAccoutParam(channelUserinfo);
+
+		SendSmsChannelResp smsChannelResp = getAccount(hlqxtAccountParam, channelInfo);
+
+		return smsChannelResp;
+	}
+
 	/**
 	 * 获取通道用户信息
 	 * @return ChannelUserinfo
 	 */
-	private ChannelUserinfo getChannelUserinfo() {
+	public ChannelUserinfo getChannelUserinfo() {
 		ChannelUserinfoQuery queryModel = new ChannelUserinfoQuery();
 		queryModel.setIndentity(ChannelIndentityEnum.HLQXT.getKey());
 		ChannelUserinfo channelUserinfo = channelUserinfoQueryManage.queryUserByChannelIdentity(queryModel);
@@ -86,9 +107,9 @@ public class HLQXTChannelManage {
 	 * 获取通道信息
 	 * @return ChannelInfo
 	 */
-	private ChannelInfo getChannelInfo() {
+	private ChannelInfo getChannelInfo(Integer type) {
 		ChannelInfoQuery channelInfoQuery = new ChannelInfoQuery();
-		channelInfoQuery.setType(ChannelTypeEnum.HLQXT_DOWNLINK.getKey());
+		channelInfoQuery.setType(type);
 		ChannelInfo channelInfo = channelQueryManage.queryChannelInfoByType(channelInfoQuery);
 		return channelInfo;
 	}
@@ -142,8 +163,48 @@ public class HLQXTChannelManage {
 
 		SendSmsChannelResp channelResp = httpRequestManage.doGet(httpRequest);
 
+		logger.info("鸿联企信通，短信发送结果：{}", JSONConverter.toJson(channelResp));
 		return channelResp;
 
+	}
+
+	/**
+	 * 初始化鸿联获取账户参数
+	 * @param channelUserinfo
+	 * @return
+	 */
+	private HLQXTAccountParam initAccoutParam(ChannelUserinfo channelUserinfo) {
+		HLQXTAccountParam hlqxtAccount = new HLQXTAccountParam();
+		hlqxtAccount.setUsername(channelUserinfo.getUsername());
+		hlqxtAccount.setPassword(channelUserinfo.getPassword());
+		hlqxtAccount.setEpid(ChannelAccessConstant.HLQXT_EPID);
+		return hlqxtAccount;
+	}
+
+	/**
+	 * 获取账户数据
+	 * @param hlqxtAccountParam
+	 * @param channelInfo
+	 * @return
+	 * @throws IOException
+	 */
+	private SendSmsChannelResp getAccount(HLQXTAccountParam hlqxtAccountParam, ChannelInfo channelInfo)
+			throws IOException {
+		StringBuffer urlBuffer = new StringBuffer(channelInfo.getUrl());
+		urlBuffer.append("?").append(hlqxtAccountParam.getAccountNeedParam());
+		urlBuffer.append("&epid=").append(hlqxtAccountParam.getEpid());
+
+		logger.info("鸿联企信通，获取账户链接：" + urlBuffer);
+
+		HttpRequest httpRequest = new HttpRequest();
+		httpRequest.setUrl(urlBuffer.toString());
+		httpRequest.setReqCharacter(getReqHttpCode());
+		httpRequest.setRespCharacter(getRespHttpCode());
+
+		SendSmsChannelResp channelResp = httpRequestManage.doGet(httpRequest);
+
+		logger.info("鸿联企信通，获取账户结果：{}", JSONConverter.toJson(channelResp));
+		return channelResp;
 	}
 
 	/**

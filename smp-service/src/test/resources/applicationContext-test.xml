@@ -22,6 +22,10 @@
 		interface="com.pzj.core.smp.channel.SendMessageService" version="1.0"
 		timeout="${dubbo.consumer.timeout}" url="${dubbo.url}" check="false"/>
 		
+	<dubbo:reference id="accountWarnService"
+		interface="com.pzj.core.smp.channel.AccountWarnService" version="1.0"
+		timeout="${dubbo.consumer.timeout}" url="${dubbo.url}" check="false"/>
+		
 	<dubbo:reference id="recordManageService"
 					 interface="com.pzj.core.smp.record.IRecordManageService" version="1.0"
 					 timeout="${dubbo.consumer.timeout}" url="${dubbo.url}"/>

@@ -28,12 +28,14 @@ class PublishService {
 
 	/**
 	 * 发布指定业务的消息任务
+	 * @param transactionId
 	 * @param deliveryInfo
 	 * @param message
 	 */
-	public void publishMessage(DeliveryInfoEntity deliveryInfo, MessageEntity message) {
+	public void publishMessage(String transactionId, DeliveryInfoEntity deliveryInfo, MessageEntity message) {
 		String queueName = guidanceDirection(deliveryInfo.address());
 		QueueData data = new QueueData();
+		data.setTransactionId(transactionId);
 		data.setDeliveryInfo(deliveryInfo);
 		data.setMessage(message);
 		queueService.push(SmpCacheKey.newKey(queueName), data);

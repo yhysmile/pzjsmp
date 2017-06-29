@@ -16,7 +16,11 @@ public enum ChannelTypeEnum {
 	/**
 	 * 高斯通余额通道
 	 */
-	GST_BALANCE(22, "高斯通余额通道");
+	GST_BALANCE(22, "高斯通余额通道"),
+	/**
+	 * MAS政企云下行通道
+	 */
+	MAS_DOWNLINK(31, "MAS政企云下行通道");
 
 	private Integer key;
 	private String value;

@@ -1,7 +1,7 @@
 package com.pzj.core.smp.channel.business;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 
 import javax.annotation.Resource;
 
@@ -14,6 +14,7 @@ import com.pzj.core.smp.channel.common.ChannelAccessConstant;
 import com.pzj.core.smp.channel.enums.ChannelIndentityEnum;
 import com.pzj.core.smp.channel.enums.ChannelTypeEnum;
 import com.pzj.core.smp.channel.enums.HLQXTRespCodeEnum;
+import com.pzj.core.smp.channel.enums.MASRespCodeEnum;
 import com.pzj.core.smp.channel.model.ChannelExceptionInfo;
 import com.pzj.core.smp.channel.model.ChannelInfo;
 import com.pzj.core.smp.channel.model.ChannelRetryParam;
@@ -30,6 +31,8 @@ public class SendMessageManage {
 	private HLQXTChannelManage hlqxtChannelManage;
 	@Resource(name = "gstChannelManage")
 	private GSTChannelManage gstChannelManage;
+	@Resource(name = "masChannelManage")
+	private MasChannelManage masChannelManage;
 
 	/**
 	 * 检查是否走重试服务
@@ -50,6 +53,9 @@ public class SendMessageManage {
 		} else if (ChannelIndentityEnum.GST.getKey() == channelIdentity
 				&& !sendSmsChannelResp.getContent().contains(ChannelAccessConstant.GST_SEND_SUCCESS_FLAG)) {
 			flag = Boolean.TRUE;
+		} else if (ChannelIndentityEnum.MAS.getKey() == channelIdentity
+				&& !sendSmsChannelResp.getContent().equals(MASRespCodeEnum.SUCCESS.getCode())) {
+			flag = Boolean.TRUE;
 		}
 		return flag;
 	}
@@ -66,10 +72,13 @@ public class SendMessageManage {
 			return flag;
 		}
 		if (ChannelIndentityEnum.HLQXT.getKey() == channelIdentity
-				&& !sendSmsChannelResp.getContent().equals(HLQXTRespCodeEnum.SUCCESS.getCode())) {
+				&& sendSmsChannelResp.getContent().equals(HLQXTRespCodeEnum.SUCCESS.getCode())) {
 			flag = Boolean.TRUE;
 		} else if (ChannelIndentityEnum.GST.getKey() == channelIdentity
-				&& !sendSmsChannelResp.getContent().contains(ChannelAccessConstant.GST_SEND_SUCCESS_FLAG)) {
+				&& sendSmsChannelResp.getContent().contains(ChannelAccessConstant.GST_SEND_SUCCESS_FLAG)) {
+			flag = Boolean.TRUE;
+		} else if (ChannelIndentityEnum.MAS.getKey() == channelIdentity
+				&& sendSmsChannelResp.getContent().contains(MASRespCodeEnum.SUCCESS.getCode())) {
 			flag = Boolean.TRUE;
 		}
 		return flag;
@@ -93,6 +102,7 @@ public class SendMessageManage {
 			channelRetry.setRetryNum(sendSmsChannelResp.getRetryNum());
 		}
 		channelRetry.setChannelId(channelInfo.getId());
+		channelRetry.setChannelInfo(channelInfo);
 
 		return channelRetry;
 	}
@@ -130,6 +140,8 @@ public class SendMessageManage {
 			channelIdentity = ChannelIndentityEnum.HLQXT.getKey();
 		} else if (ChannelTypeEnum.GST_DOWNLINK == channelType) {
 			channelIdentity = ChannelIndentityEnum.GST.getKey();
+		} else if (ChannelTypeEnum.MAS_DOWNLINK == channelType) {
+			channelIdentity = ChannelIndentityEnum.MAS.getKey();
 		}
 		if (null == channelIdentity) {
 			throw new SmpException(SmpExceptionCode.NO_AVAIABLE_CHANNEL_ERR);
@@ -140,45 +152,6 @@ public class SendMessageManage {
 
 	/**
 	 * 调用通道发送短信
-	 * @param sendMessage
-	 * @param channelIdentity
-	 * @return SendSmsChannelResp
-	 */
-	//	public SendSmsChannelResp invokeChannelSendMessage(ChannelSendMessage sendMessage, Integer channelIdentity) {
-	//		SendSmsChannelResp sendSmsChannelResp = null;
-	//		if (ChannelIndentityEnum.HLQXT.getKey() == channelIdentity) {
-	//			sendSmsChannelResp = hlqxtChannelManage.sendDownlinkMessage(sendMessage);
-	//		} else if (ChannelIndentityEnum.GST.getKey() == channelIdentity) {
-	//			sendSmsChannelResp = gstChannelManage.sendDownlinkMessage(sendMessage);
-	//		}
-	//		return sendSmsChannelResp;
-	//
-	//	}
-
-	/**
-	 * 调用通道发送短信
-	 * @param channelRetry
-	 * @param channelInfo
-	 */
-	//	public SendSmsChannelResp invokeSendMessage(ChannelRetryParam channelRetry) {
-	//		SendSmsChannelResp sendSmsChannelResp = null;
-	//		try {
-	//			ChannelSendMessage sendMessage = initSendMessage(channelRetry);
-	//			Integer channelIdentity = channelRetry.getChannelIdentity();
-	//			if (ChannelIndentityEnum.HLQXT.getKey() == channelIdentity) {
-	//				sendSmsChannelResp = hlqxtChannelManage.sendDownlinkMessage(sendMessage);
-	//			} else if (ChannelIndentityEnum.GST.getKey() == channelIdentity) {
-	//				sendSmsChannelResp = gstChannelManage.sendDownlinkMessage(sendMessage);
-	//			}
-	//		} catch (IOException e) {
-	//			e.printStackTrace();
-	//		}
-	//
-	//		return sendSmsChannelResp;
-	//	}
-
-	/**
-	 * 调用通道发送短信
 	 * @param channelRetry
 	 * @param sendMessage
 	 * @param channelIdentity
@@ -186,6 +159,10 @@ public class SendMessageManage {
 	 */
 	public SendSmsChannelResp invokeSendMessage(ChannelRetryParam channelRetry, ChannelSendMessage sendMessage,
 			Integer channelIdentity) {
+		if (logger.isDebugEnabled()) {
+			logger.debug(" invokeSendMessage start channelRetry:{},sendMessage:{},channelIdentity:{}",
+					JSONConverter.toJson(channelRetry), JSONConverter.toJson(sendMessage), channelIdentity);
+		}
 		SendSmsChannelResp sendSmsChannelResp = null;
 		if (null != channelRetry) {
 			sendMessage = initSendMessage(channelRetry);
@@ -193,11 +170,14 @@ public class SendMessageManage {
 		}
 		Boolean excepFlag = Boolean.FALSE;
 		Integer retryNum = ChannelExceptionInfo.defaultRetryNum;
+		String errTip = "";
 		try {
 			if (ChannelIndentityEnum.HLQXT.getKey() == channelIdentity) {
 				sendSmsChannelResp = hlqxtChannelManage.sendDownlinkMessage(sendMessage);
 			} else if (ChannelIndentityEnum.GST.getKey() == channelIdentity) {
 				sendSmsChannelResp = gstChannelManage.sendDownlinkMessage(sendMessage);
+			} else if (ChannelIndentityEnum.MAS.getKey() == channelIdentity) {
+				sendSmsChannelResp = masChannelManage.sendDownlinkMessage(sendMessage);
 			}
 		} catch (IOException e) {
 			logger.error("invoke sms channel send error! request sendMessage:{},channelRetry:{},channelIdentity:{}",
@@ -207,6 +187,10 @@ public class SendMessageManage {
 			ChannelExceptionInfo channelExcep = handleException(e);
 			excepFlag = channelExcep.getExcepFlag();
 			retryNum = channelExcep.getRetryNum();
+			if (null != channelRetry && null != channelRetry.getRetryNum() && retryNum > 0) {
+				retryNum += channelRetry.getRetryNum();
+			}
+			errTip = e.getClass().toString();
 
 			if (!excepFlag) {
 				throw new SmpException(e);
@@ -219,6 +203,10 @@ public class SendMessageManage {
 			ChannelExceptionInfo channelExcep = handleException(t);
 			excepFlag = channelExcep.getExcepFlag();
 			retryNum = channelExcep.getRetryNum();
+			if (null != channelRetry && null != channelRetry.getRetryNum() && retryNum > 0) {
+				retryNum += channelRetry.getRetryNum();
+			}
+			errTip = t.getClass().toString();
 
 			if (!excepFlag) {
 				if (t instanceof SmpException) {
@@ -231,9 +219,18 @@ public class SendMessageManage {
 		if (null == sendSmsChannelResp) {
 			sendSmsChannelResp = new SendSmsChannelResp();
 		}
+		if (null != channelRetry) {
+			channelRetry.setSendLinkId(sendMessage.getSendLinkId());
+		}
 		sendSmsChannelResp.setRestryFlag(excepFlag);
 		sendSmsChannelResp.setRetryNum(retryNum);
+		if (null != errTip && !"".equals(errTip)) {
+			sendSmsChannelResp.setContent(errTip);
+		}
 
+		if (logger.isDebugEnabled()) {
+			logger.debug(" invokeSendMessage end sendSmsChannelResp:{}", JSONConverter.toJson(sendSmsChannelResp));
+		}
 		return sendSmsChannelResp;
 	}
 
@@ -250,8 +247,11 @@ public class SendMessageManage {
 			if (e instanceof ConnectTimeoutException) {
 				logger.warn("invoke channel send message timeout.", e);
 				channelExcep.setExcepFlag(Boolean.TRUE);
-			} else if (e instanceof FileNotFoundException) {
-				logger.warn("invoke channel send message file not found.", e);
+			} else if (e instanceof SocketTimeoutException) {
+				logger.warn("invoke channel send message socket timeout.", e);
+				channelExcep.setExcepFlag(Boolean.TRUE);
+			} else if (e instanceof IOException) {
+				logger.warn("invoke channel io exception.", e);
 				channelExcep.setExcepFlag(Boolean.TRUE);
 				channelExcep.setRetryNum(ChannelExceptionInfo.notAvaiRetryNum);
 			} else if (e instanceof SmpException) {
@@ -273,7 +273,7 @@ public class SendMessageManage {
 	public ChannelSendMessage initSendMessage(ChannelRetryParam channelRetry) {
 		ChannelSendMessage sendMessage = new ChannelSendMessage();
 		sendMessage.setPhoneNumber(channelRetry.getPhoneNumber());
-		sendMessage.setContent(channelRetry.getMsgContent());
+		sendMessage.setContent(channelRetry.getContent());
 		return sendMessage;
 	}
 }

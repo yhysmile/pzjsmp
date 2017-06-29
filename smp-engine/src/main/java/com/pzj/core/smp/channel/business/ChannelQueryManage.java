@@ -8,6 +8,7 @@ import javax.annotation.Resource;
 import org.springframework.stereotype.Component;
 
 import com.pzj.core.smp.channel.common.ObjUtils;
+import com.pzj.core.smp.channel.enums.ChannelStateEnum;
 import com.pzj.core.smp.channel.model.ChannelInfo;
 import com.pzj.core.smp.channel.model.ChannelInfoQuery;
 import com.pzj.core.smp.entity.SmsChannel;
@@ -64,7 +65,7 @@ public class ChannelQueryManage {
 	 * @return ChannelInfo
 	 */
 	private ChannelInfo initChannelInfo(SmsChannel smsChannel) {
-		if (ObjUtils.checkObjectIsNull(smsChannel)) {
+		if (ObjUtils.checkObjectIsNull(smsChannel) || smsChannel.getState() != ChannelStateEnum.AVAILABLE.getState()) {
 			return null;
 		}
 		ChannelInfo channelInfo = new ChannelInfo();

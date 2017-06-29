@@ -1,7 +1,7 @@
 package com.pzj.core.smp.channel.common;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import com.pzj.core.smp.channel.model.MasHttpContentResp;
+import com.pzj.framework.converter.JSONConverter;
 
 public class StrUtils {
 	/**
@@ -54,21 +54,24 @@ public class StrUtils {
 		//		phones[0] = "18210255864";
 		//		phones[1] = "18210255864";
 
-		try {
-			String content = "浣犲ソ";
+		//		try {
+		//			String content = "浣犲ソ";
+		//
+		//			String test1 = URLEncoder.encode(content, ChannelAccessConstant.CHARACTER_ENCODING_UTF8);
+		//
+		//			String message = new String(content.getBytes("ISO-8859-1"), ChannelAccessConstant.CHARACTER_ENCODING_UTF8);
+		//
+		//			String content2 = "很不错！";
+		//			String message2 = new String(content2.getBytes("ISO-8859-1"), ChannelAccessConstant.CHARACTER_ENCODING_UTF8);
+		//
+		//			System.out.println(content + "========" + test1 + "========" + message + "========" + message2);
+		//		} catch (UnsupportedEncodingException e) {
+		//			// TODO Auto-generated catch block
+		//			e.printStackTrace();
+		//		}
 
-			String test1 = URLEncoder.encode(content, ChannelAccessConstant.CHARACTER_ENCODING_UTF8);
-
-			String message = new String(content.getBytes("ISO-8859-1"), ChannelAccessConstant.CHARACTER_ENCODING_UTF8);
-
-			String content2 = "很不错！";
-			String message2 = new String(content2.getBytes("ISO-8859-1"), ChannelAccessConstant.CHARACTER_ENCODING_UTF8);
-
-			System.out.println(content + "========" + test1 + "========" + message + "========" + message2);
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
+		String content = "{\"msgGroup\":\"\",\"rspcod\":\"InvalidUsrOrPwd\",\"success\":false}";
+		MasHttpContentResp masResp = JSONConverter.toBean(content, MasHttpContentResp.class);
+		System.out.println("getRspcod:" + masResp.getRspcod());
 	}
 }

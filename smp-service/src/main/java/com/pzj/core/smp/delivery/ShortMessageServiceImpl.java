@@ -2,10 +2,11 @@ package com.pzj.core.smp.delivery;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import javax.annotation.Resource;
 
-import com.pzj.framework.converter.JSONConverter;
+import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +19,9 @@ import com.pzj.core.smp.util.CommonMatches;
 import com.pzj.core.smp.util.ModelBuilder;
 import com.pzj.core.smp.util.RpcCaller;
 import com.pzj.framework.context.Result;
+import com.pzj.framework.converter.JSONConverter;
+import com.pzj.orange.client.Consts;
+import com.pzj.orange.client.RecordThreadLocal;
 
 /**
  * Created by Administrator on 2016-12-29.
@@ -41,8 +45,16 @@ public class ShortMessageServiceImpl implements IShortMessageService {
 	}
 
 	private void doSendMessage(MessageBean messageBean) {
-		if (logger.isInfoEnabled()){
-			logger.info("开始处理，当前时间为 {} ，数据为 {}", System.currentTimeMillis(), JSONConverter.toJson(messageBean));
+		String requestId = RecordThreadLocal.getString(Consts.GLOBAL_REQUEST_ID_KEY);
+		if (requestId == null){
+			requestId = UUID.randomUUID().toString();
+		}
+		MDC.put("requestId", requestId);
+
+		Long beginDate = System.currentTimeMillis();
+		Long endDate = null;
+		if (logger.isInfoEnabled()) {
+			logger.info("开始处理， 当前时间为 {} ，数据为 {}", beginDate, JSONConverter.toJson(messageBean));
 		}
 		verifyMessageBean(messageBean);
 
@@ -57,13 +69,14 @@ public class ShortMessageServiceImpl implements IShortMessageService {
 		MessageEntity message = ModelBuilder.createShortMessage(messageBean.getPhoneNums(), renderContent);
 
 		if (logger.isInfoEnabled()) {
-			logger.info("开始投递到优先级队列，当前时间为 {}", System.currentTimeMillis());
+			logger.info("开始投递到优先级队列， 当前时间为 {}", System.currentTimeMillis());
 		}
 
 		// 4. 执行消息投递
-		schedulingMessageService.publishMessage(deliveryInfo, message);
+		schedulingMessageService.publishMessage(requestId, deliveryInfo, message);
 		if (logger.isInfoEnabled()) {
-			logger.info("完成处理，当前时间为 {}", System.currentTimeMillis());
+			endDate = System.currentTimeMillis();
+			logger.info("完成处理， 当前时间为 {}，消耗时间为 {}。", endDate, endDate - beginDate);
 		}
 	}
 

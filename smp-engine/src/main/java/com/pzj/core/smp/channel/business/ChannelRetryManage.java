@@ -11,6 +11,8 @@ import com.pzj.core.smp.channel.common.ObjUtils;
 import com.pzj.core.smp.channel.enums.ChannelIndentityEnum;
 import com.pzj.core.smp.channel.enums.GSTRespCodeEnum;
 import com.pzj.core.smp.channel.enums.HLQXTRespCodeEnum;
+import com.pzj.core.smp.channel.enums.MASRespCodeEnum;
+import com.pzj.core.smp.channel.model.ChannelExceptionInfo;
 import com.pzj.core.smp.channel.model.ChannelInfo;
 import com.pzj.core.smp.channel.model.ChannelRetryParam;
 import com.pzj.core.smp.channel.model.SendSmsChannelResp;
@@ -35,7 +37,9 @@ public class ChannelRetryManage {
 		if (null == channelRetry) {
 			return null;
 		}
-		logger.info("invoke send message channel restry,request param:{}", JSONConverter.toJson(channelRetry));
+		if (logger.isDebugEnabled()) {
+			logger.debug("invoke send message channel restry,request param:{}", JSONConverter.toJson(channelRetry));
+		}
 
 		//处理通道重试机制
 		Integer channelIdentity = channelRetry.getChannelIdentity();
@@ -44,6 +48,9 @@ public class ChannelRetryManage {
 
 		} else if (ChannelIndentityEnum.GST.getKey() == channelIdentity) {
 			gstRespHandle(channelRetry);
+
+		} else if (ChannelIndentityEnum.MAS.getKey() == channelIdentity) {
+			masRespHandle(channelRetry);
 		}
 
 		//智能筛选获取最优通道
@@ -60,7 +67,10 @@ public class ChannelRetryManage {
 
 			sendSmsChannelResp = sendMessageManage.invokeSendMessage(channelRetry, null, null);
 		} else {
-			return null;
+			sendSmsChannelResp = new SendSmsChannelResp();
+			sendSmsChannelResp.setCode(channelRetry.getRespCode());
+			sendSmsChannelResp.setContent(channelRetry.getRespContent());
+			return sendSmsChannelResp;
 		}
 
 		//检测短信是否发送成功，根据通道返回结果采取重试机制
@@ -89,12 +99,15 @@ public class ChannelRetryManage {
 			//短信发送失败，重试机制继续发送
 			if (respCode == HLQXTRespCodeEnum.SEND_FAIL) {
 				channelRetryTime = channelRetry.getRetryChannelMap().get(key);
-				channelRetryTime = ObjUtils.checkIntegerIsNull(channelRetryTime, true) ? 1 : channelRetryTime++;
+				channelRetryTime = ObjUtils.checkIntegerIsNull(channelRetryTime, true) ? 1 : ++channelRetryTime;
 			} else {
-				channelRetryTime = -1;
+				channelRetryTime = ChannelExceptionInfo.notAvaiRetryNum;
 			}
 		} else {
-			channelRetryTime = channelRetry.getRetryNum() == null ? 1 : channelRetry.getRetryNum();
+			Integer hisChannelRetryTime = channelRetry.getRetryChannelMap().get(key);
+			if (null != hisChannelRetryTime) {
+				channelRetryTime += hisChannelRetryTime;
+			}
 		}
 
 		commonChannelMapHandle(channelRetry, key, channelRetryTime);
@@ -115,13 +128,38 @@ public class ChannelRetryManage {
 			GSTRespCodeEnum unknownErr = GSTRespCodeEnum.ERROR_UNKNOWN;
 			if (respCode == frequent || respCode == error || respCode == unknownErr) {
 				channelRetryTime = channelRetry.getRetryChannelMap().get(key);
-				channelRetryTime = ObjUtils.checkIntegerIsNull(channelRetryTime, true) ? 1 : channelRetryTime++;
+				channelRetryTime = ObjUtils.checkIntegerIsNull(channelRetryTime, true) ? 1 : ++channelRetryTime;
 			} else {
-				channelRetryTime = -1;
+				channelRetryTime = ChannelExceptionInfo.notAvaiRetryNum;
 			}
 		} else {
-			channelRetryTime = channelRetry.getRetryNum() == null ? 1 : channelRetry.getRetryNum();
+			Integer hisChannelRetryTime = channelRetry.getRetryChannelMap().get(key);
+			if (null != hisChannelRetryTime) {
+				channelRetryTime += hisChannelRetryTime;
+			}
 		}
+		commonChannelMapHandle(channelRetry, key, channelRetryTime);
+	}
+
+	/**
+	 * mas通道重试处理
+	 * @param channelRetry
+	 */
+	private void masRespHandle(ChannelRetryParam channelRetry) {
+		Long key = channelRetry.getChannelId();
+		Integer channelRetryTime = 1;
+
+		MASRespCodeEnum respCode = MASRespCodeEnum.getRespCode(channelRetry.getRespContent());
+		if (null != respCode) {
+			//短信发送失败，重试机制继续发送
+			channelRetryTime = ChannelExceptionInfo.notAvaiRetryNum;
+		} else {
+			Integer hisChannelRetryTime = channelRetry.getRetryChannelMap().get(key);
+			if (null != hisChannelRetryTime) {
+				channelRetryTime += hisChannelRetryTime;
+			}
+		}
+
 		commonChannelMapHandle(channelRetry, key, channelRetryTime);
 	}
 
@@ -134,9 +172,9 @@ public class ChannelRetryManage {
 	private void commonChannelMapHandle(ChannelRetryParam channelRetry, Long key, Integer channelRetryTime) {
 		channelRetry.getRetryChannelMap().put(key, channelRetryTime);
 		int retryTimes = ChannelAccessConstant.SINGLE_CHANNEL_RETRY_TIMES;
-		if (channelRetryTime == --retryTimes) {
+		if (channelRetryTime < retryTimes) {
 			try {
-				Thread.sleep(500L);
+				Thread.sleep(ChannelAccessConstant.RESTRY_SLEEP_TIME);
 			} catch (InterruptedException e) {
 				logger.error("invoke fail retry sleep interrupted exception", e);
 				throw new SmpException(e);

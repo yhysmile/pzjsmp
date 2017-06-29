@@ -44,7 +44,7 @@ class ProcessService {
 	 * @param deliveryInfo
 	 * @param message
 	 */
-	public void processQueueData(DeliveryInfoEntity deliveryInfo, MessageEntity message) {
+	public void processQueueData(String transactionId, DeliveryInfoEntity deliveryInfo, MessageEntity message) {
 		// 找到线程池
 		ExecutorService processPool = processorPollOf(deliveryInfo.address());
 		if (processPool != null) {
@@ -52,6 +52,7 @@ class ProcessService {
 			ProcessRun run = new ProcessRun();
 			run.deliveryInfo = deliveryInfo;
 			run.message = message;
+			run.transactionId= transactionId;
 			// 提交任务
 			processPool.submit(run);
 		}
@@ -67,10 +68,11 @@ class ProcessService {
 	private class ProcessRun implements Runnable {
 		DeliveryInfoEntity deliveryInfo;
 		MessageEntity message;
+		String transactionId;
 
 		@Override
 		public void run() {
-			processor.processMessage(deliveryInfo, message);
+			processor.processMessage(transactionId, deliveryInfo, message);
 		}
 	}
 
